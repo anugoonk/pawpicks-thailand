@@ -1,0 +1,64 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# production
+/dist
+
+# testing
+/coverage
+
+# env files — NEVER commit real secrets
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env*.local
+# keep the template
+!.env.example
+
+# supabase
+/supabase/.branches
+/supabase/.temp
+/supabase/.env
+
+# firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.firebaserc.local
+apphosting.emulator.yaml
+
+# vercel (not used, guard anyway)
+.vercel
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# misc
+*.pem
+.turbo
+tsconfig.tsbuildinfo
