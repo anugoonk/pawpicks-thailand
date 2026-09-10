@@ -44,8 +44,8 @@
 ## E. โดเมน & SEO
 
 - [ ] เชื่อม custom domain (เมื่อพร้อม) + HTTPS ทำงาน
-- [ ] `NEXT_PUBLIC_SITE_URL` ตรงกับโดเมนจริง (มีผลกับ metadata / OG / Stripe redirect)
-- [ ] `robots` / `sitemap` ตามต้องการ
+- [ ] `NEXT_PUBLIC_SITE_URL` ตรงกับโดเมนจริง (มีผลกับ metadata / OG / Stripe redirect / robots+sitemap — ทั้งคู่ gen ตอน build)
+- [x] `robots.txt` / `sitemap.xml` — มีแล้ว (`app/robots.ts`, `app/sitemap.ts`); ตรวจว่า `/robots.txt` ชี้โดเมนจริงหลัง deploy
 
 ## F. หลัง Deploy (smoke test บน production)
 
