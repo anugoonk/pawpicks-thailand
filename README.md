@@ -22,7 +22,7 @@
 ```bash
 npm install
 cp .env.example .env.local        # แล้วเติมค่า (Supabase Dev project + Stripe TEST keys)
-npm run dev                        # http://localhost:3000
+npm run dev                        # http://localhost:3021
 ```
 
 ถ้ายังไม่ตั้งค่า Supabase เว็บจะใช้ข้อมูลสำรองใน `lib/data.ts` (สินค้า 4 ชิ้น, แมว 12 ตัว) — หน้าเว็บ render ได้เสมอ
@@ -40,7 +40,7 @@ npx supabase db reset              # รัน migrations + seed.sql
 
 ```bash
 stripe login
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:3021/api/stripe/webhook
 # เอา whsec_... ที่ได้ ใส่ STRIPE_WEBHOOK_SECRET ใน .env.local
 ```
 
