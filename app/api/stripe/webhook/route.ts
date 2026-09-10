@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
 import { serverEnv } from "@/lib/env";
 import { getStripe } from "@/lib/stripe";
@@ -47,16 +48,12 @@ export async function POST(request: Request) {
         // methods (PromptPay) the session completes while payment is still
         // processing — do NOT mark it paid until `payment_status` says so;
         // the real confirmation arrives as `async_payment_succeeded`.
-        if (session.payment_status === "paid") {
-          await markOrderPaid(session);
-        } else {
-          await markOrderPending(session);
-        }
+        await writeOrder(session, session.payment_status === "paid" ? "paid" : "pending");
         break;
       }
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
-        await markOrderPaid(session);
+        await writeOrder(session, "paid");
         break;
       }
       case "checkout.session.expired":
@@ -78,49 +75,91 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
-/** Common columns for an order row, derived only from the verified session. */
-function orderRow(session: Stripe.Checkout.Session) {
-  return {
-    stripe_session_id: session.id,
-    stripe_payment_intent: (session.payment_intent as string) ?? null,
-    email: session.customer_details?.email ?? null,
-    amount_total_thb: Math.round((session.amount_total ?? 0) / 100),
-    currency: session.currency ?? "thb",
-  };
-}
-
-async function markOrderPaid(session: Stripe.Checkout.Session) {
-  const { createAdminClient } = await import("@/lib/supabase/admin");
-  const supabase = createAdminClient();
-
-  // Idempotent upsert keyed by the Stripe session id.
-  const { error } = await supabase.from("orders").upsert(
-    {
-      ...orderRow(session),
-      status: "paid",
-      paid_at: new Date().toISOString(),
-    },
-    { onConflict: "stripe_session_id" },
-  );
-  if (error) throw error;
-}
-
 /**
- * Record a completed session whose payment has not settled yet (PromptPay in
- * flight). Keeps `paid_at` null; a later `async_payment_succeeded` promotes it.
+ * Upsert the order row (idempotent on `stripe_session_id`) and replace its
+ * line items from the verified Stripe session. `status` is "pending" while a
+ * delayed payment settles, then "paid".
  */
-async function markOrderPending(session: Stripe.Checkout.Session) {
+async function writeOrder(
+  session: Stripe.Checkout.Session,
+  status: "pending" | "paid",
+) {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
 
-  const { error } = await supabase.from("orders").upsert(
-    {
-      ...orderRow(session),
-      status: "pending",
-    },
-    { onConflict: "stripe_session_id", ignoreDuplicates: false },
-  );
+  const userId =
+    session.client_reference_id ?? session.metadata?.user_id ?? null;
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .upsert(
+      {
+        stripe_session_id: session.id,
+        stripe_payment_intent: (session.payment_intent as string) ?? null,
+        user_id: userId,
+        status,
+        email: session.customer_details?.email ?? null,
+        amount_total_thb: Math.round((session.amount_total ?? 0) / 100),
+        currency: session.currency ?? "thb",
+        paid_at: status === "paid" ? new Date().toISOString() : null,
+      },
+      { onConflict: "stripe_session_id" },
+    )
+    .select("id")
+    .single();
   if (error) throw error;
+
+  await syncOrderItems(supabase, order.id, session.id);
+}
+
+/** Mirror the session's line items into `order_items` (delete + reinsert). */
+async function syncOrderItems(
+  supabase: SupabaseClient,
+  orderId: string,
+  stripeSessionId: string,
+) {
+  const lineItems = await getStripe().checkout.sessions.listLineItems(
+    stripeSessionId,
+    { limit: 100, expand: ["data.price.product"] },
+  );
+
+  const draft = lineItems.data.map((li) => {
+    const product = li.price?.product as Stripe.Product | undefined;
+    return {
+      order_id: orderId,
+      product_id: product?.metadata?.product_id ?? null,
+      name: li.description ?? product?.name ?? "สินค้า",
+      unit_price_thb: Math.round((li.price?.unit_amount ?? 0) / 100),
+      quantity: li.quantity ?? 1,
+    };
+  });
+
+  // Null out any product_id that no longer exists in the catalogue so the
+  // FK insert can't fail (and wedge webhook retries). The name is kept.
+  const ids = [...new Set(draft.map((r) => r.product_id).filter(Boolean))];
+  const known = new Set<string>();
+  if (ids.length > 0) {
+    const { data: existing } = await supabase
+      .from("products")
+      .select("id")
+      .in("id", ids as string[]);
+    for (const p of existing ?? []) known.add(p.id as string);
+  }
+  const rows = draft.map((r) => ({
+    ...r,
+    product_id: r.product_id && known.has(r.product_id) ? r.product_id : null,
+  }));
+
+  const { error: delError } = await supabase
+    .from("order_items")
+    .delete()
+    .eq("order_id", orderId);
+  if (delError) throw delError;
+
+  if (rows.length > 0) {
+    const { error: insError } = await supabase.from("order_items").insert(rows);
+    if (insError) throw insError;
+  }
 }
 
 async function markOrderFailed(session: Stripe.Checkout.Session) {
