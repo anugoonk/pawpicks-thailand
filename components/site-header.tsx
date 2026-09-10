@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { CartButton } from "@/components/cart-button";
 import { useSearch, useJumpToProducts } from "@/components/search-context";
 
 const NAV_LINKS = [
@@ -59,6 +60,7 @@ export function SiteHeader() {
           >
             ⌕
           </button>
+          <CartButton />
           <button
             className="menu-button"
             id="menuToggle"
