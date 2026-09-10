@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { AccountLink } from "@/components/account-link";
 import { CartButton } from "@/components/cart-button";
 import { useSearch, useJumpToProducts } from "@/components/search-context";
 
@@ -61,6 +62,7 @@ export function SiteHeader() {
             ⌕
           </button>
           <CartButton />
+          <AccountLink />
           <button
             className="menu-button"
             id="menuToggle"

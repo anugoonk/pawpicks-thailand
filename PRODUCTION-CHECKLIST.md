@@ -18,6 +18,8 @@
 - [ ] seed เฉพาะข้อมูล catalogue (`seed.sql`) — ไม่ seed ข้อมูลทดสอบ order
 - [ ] สร้าง bucket `product-images` (public read) และอัปโหลดรูปสินค้าจริง
 - [ ] ตั้งบัญชี admin คนแรก: สมัครผ่าน Auth แล้ว `update public.profiles set role='admin' where email='<owner>'`
+- [ ] **Auth (magic link):** Studio > Authentication > URL Configuration → Site URL = โดเมนจริง; Redirect URLs allowlist ใส่ `https://<prod-domain>/auth/callback`
+- [ ] **Auth email:** ตรวจ email template / rate limit; ถ้าส่งเยอะให้ตั้ง custom SMTP (built-in ของ Supabase จำกัดโควตา)
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` ของ prod เก็บใน Firebase App Hosting Secret เท่านั้น
 - [ ] ตั้ง Supabase usage / spend monitoring + alert
 
