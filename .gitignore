@@ -60,6 +60,9 @@ Thumbs.db
 !.vscode/extensions.json
 *.swp
 
+# claude code — personal per-project overrides
+.claude/settings.local.json
+
 # misc
 *.pem
 .turbo
