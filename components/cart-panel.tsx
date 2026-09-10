@@ -19,6 +19,7 @@ export function CartPanel() {
     freeShippingThreshold,
     setQuantity,
     remove,
+    clear,
     cartOpen,
     setCartOpen,
     checkoutItems,
@@ -96,13 +97,20 @@ export function CartPanel() {
       >
         <div className="cart-head">
           <strong>ตะกร้าสินค้า{count > 0 ? ` (${count})` : ""}</strong>
-          <button
-            className="cart-close"
-            onClick={() => setCartOpen(false)}
-            aria-label="ปิดตะกร้า"
-          >
-            ✕
-          </button>
+          <div className="cart-head-actions">
+            {lines.length > 0 ? (
+              <button className="cart-clear" onClick={clear}>
+                ล้างตะกร้า
+              </button>
+            ) : null}
+            <button
+              className="cart-close"
+              onClick={() => setCartOpen(false)}
+              aria-label="ปิดตะกร้า"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {lines.length === 0 ? (

@@ -9,15 +9,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  clampQty,
+  computeTotals,
+  sanitizeStoredItems,
+  type CartLine,
+  type StoredItem,
+} from "@/lib/cart";
 import type { Product } from "@/lib/types";
 
 const STORAGE_KEY = "pawpicks:cart:v1";
-const MAX_QTY = 20; // mirrors cartItemSchema in lib/types.ts
 
-export type CartLine = {
-  product: Product;
-  quantity: number;
-};
+export type { CartLine } from "@/lib/cart";
 
 type CartContextValue = {
   lines: CartLine[];
@@ -37,8 +40,6 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-
-type StoredItem = { productId: string; quantity: number };
 
 export function CartProvider({
   products,
@@ -66,21 +67,7 @@ export function CartProvider({
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as StoredItem[];
-        setItems(
-          parsed
-            .filter(
-              (it) =>
-                it &&
-                typeof it.productId === "string" &&
-                byId.has(it.productId) &&
-                Number.isFinite(it.quantity),
-            )
-            .map((it) => ({
-              productId: it.productId,
-              quantity: clampQty(it.quantity),
-            })),
-        );
+        setItems(sanitizeStoredItems(JSON.parse(raw), (id) => byId.has(id)));
       }
     } catch {
       // ignore corrupt / unavailable storage
@@ -141,22 +128,14 @@ export function CartProvider({
       })
       .filter((l): l is CartLine => l !== null);
 
-    const subtotalThb = lines.reduce(
-      (sum, l) => sum + l.product.priceThb * l.quantity,
-      0,
-    );
-    const count = lines.reduce((sum, l) => sum + l.quantity, 0);
-    const shippingThb =
-      subtotalThb === 0 || subtotalThb >= freeShippingThreshold
-        ? 0
-        : shippingFlatRate;
+    const totals = computeTotals(lines, {
+      shippingFlatRate,
+      freeShippingThreshold,
+    });
 
     return {
       lines,
-      count,
-      subtotalThb,
-      shippingThb,
-      totalThb: subtotalThb + shippingThb,
+      ...totals,
       freeShippingThreshold,
       add,
       setQuantity,
@@ -188,8 +167,4 @@ export function useCart(): CartContextValue {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within <CartProvider>");
   return ctx;
-}
-
-function clampQty(n: number): number {
-  return Math.max(1, Math.min(MAX_QTY, Math.round(n)));
 }
