@@ -81,3 +81,11 @@ env:
     value: "1500"
     availability:
       - RUNTIME
+
+  # Optional: uncomment (and create the secret) to let the post-deploy smoke
+  # test read /api/health?token=... — otherwise /api/health returns status only.
+  #   firebase apphosting:secrets:set HEALTH_CHECK_TOKEN
+  # - variable: HEALTH_CHECK_TOKEN
+  #   secret: HEALTH_CHECK_TOKEN
+  #   availability:
+  #     - RUNTIME

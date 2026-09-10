@@ -37,7 +37,7 @@
 - [ ] เชื่อม GitHub repo `pawpicks-thailand`, rollout branch = `main`
 - [ ] สร้าง secrets ครบ (`firebase apphosting:secrets:set ...`) และ grant ให้ backend
 - [ ] `apphosting.yaml`: `NEXT_PUBLIC_SITE_URL` = โดเมนจริง, ค่า public อื่นถูกต้อง
-- [ ] deploy ครั้งแรกสำเร็จ, `/api/health` คืน `200` และ `checks.supabaseConfigured / stripeConfigured = true`
+- [ ] deploy ครั้งแรกสำเร็จ, `/api/health` คืน `200`. (ถ้าตั้ง `HEALTH_CHECK_TOKEN` ไว้: `/api/health?token=<token>` ต้องมี `checks.supabaseConfigured / stripeConfigured = true` — ไม่ตั้ง token = health เผยแค่ status)
 - [ ] ตั้ง Firebase + Google Cloud **Budget Alert** และตรวจประมาณการค่าใช้จ่าย
 - [ ] `minInstances`, `maxInstances`, `concurrency` เหมาะกับงบ
 
@@ -52,7 +52,8 @@
 - [ ] หน้าแรกโหลด, ฟอนต์ Anuphan / DM Sans แสดงครบ
 - [ ] ค้นหาสินค้า + ลิงก์หมวด/แมว ทำงาน
 - [ ] `/api/health` = 200
-- [ ] สร้าง Checkout Session ได้ (`POST /api/checkout`)
-- [ ] จ่ายเงินจริงจำนวนน้อย (หรือ Stripe test clock) → webhook ตั้ง order = `paid`
+- [ ] สร้าง Checkout Session ได้ (`POST /api/checkout`); ยิงซ้ำเกิน 10 ครั้ง/นาที ต่อ IP ต้องได้ `429`
+- [ ] จ่ายเงินจริงจำนวนน้อย (หรือ Stripe test clock) → webhook ตั้ง order = `paid`, มีแถวใน `order_items`, redirect ไป `/checkout/success` (ไม่ 404)
+- [ ] PromptPay: จ่ายแล้วทิ้ง → order = `pending` (ไม่ใช่ `paid`); จ่ายจริง → `async_payment_succeeded` เปลี่ยนเป็น `paid`
 - [ ] ตรวจ log ไม่มี secret / PII
 - [ ] เตรียมพร้อม `ROLLBACK-GUIDE.md` — รู้ว่า rollout ก่อนหน้าคือ commit ไหน

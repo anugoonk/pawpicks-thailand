@@ -24,6 +24,9 @@ const serverSchema = z.object({
   ADMIN_EMAIL: z.string().email().optional(),
   SHIPPING_FLAT_RATE: z.coerce.number().nonnegative().default(50),
   FREE_SHIPPING_THRESHOLD: z.coerce.number().nonnegative().default(1500),
+  // When set, /api/health only reveals the `checks` detail to callers that
+  // pass `?token=<this>`. Unset → `checks` is omitted for everyone.
+  HEALTH_CHECK_TOKEN: z.string().min(1).optional(),
 });
 
 export const publicEnv = publicSchema.parse({

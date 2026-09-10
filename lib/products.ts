@@ -54,11 +54,36 @@ export async function getProducts(): Promise<Product[]> {
   }
 }
 
-/** Look up products by id for server-side price calculation at checkout. */
+/**
+ * Look up products by id for server-side price calculation at checkout.
+ *
+ * Unlike `getProducts`, this NEVER falls back to the static list when Supabase
+ * is configured: charging a customer against a possibly-stale price is worse
+ * than failing the checkout. Throws on a DB error so the caller returns 503.
+ */
 export async function getProductsByIds(
   ids: string[],
 ): Promise<Map<string, Product>> {
-  const all = await getProducts();
   const wanted = new Set(ids);
-  return new Map(all.filter((p) => wanted.has(p.id)).map((p) => [p.id, p]));
+
+  if (!hasSupabase()) {
+    return new Map(
+      FALLBACK_PRODUCTS.filter((p) => wanted.has(p.id)).map((p) => [p.id, p]),
+    );
+  }
+
+  const { createPublicClient } = await import("@/lib/supabase/public");
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .in("id", [...wanted]);
+  if (error) throw error;
+
+  return new Map(
+    (data ?? [])
+      .map(rowToProduct)
+      .filter((p) => wanted.has(p.id))
+      .map((p) => [p.id, p]),
+  );
 }

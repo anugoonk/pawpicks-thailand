@@ -57,7 +57,14 @@ export async function POST(request: Request) {
   }
 
   const { items } = parsed.data;
-  const products = await getProductsByIds(items.map((i) => i.productId));
+
+  let products;
+  try {
+    products = await getProductsByIds(items.map((i) => i.productId));
+  } catch (err) {
+    console.error("checkout: product price lookup failed —", err);
+    return NextResponse.json({ error: "pricing_unavailable" }, { status: 503 });
+  }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   let subtotalThb = 0;
