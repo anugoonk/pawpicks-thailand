@@ -43,6 +43,19 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        // For synchronous methods (card) this is already `paid`. For delayed
+        // methods (PromptPay) the session completes while payment is still
+        // processing — do NOT mark it paid until `payment_status` says so;
+        // the real confirmation arrives as `async_payment_succeeded`.
+        if (session.payment_status === "paid") {
+          await markOrderPaid(session);
+        } else {
+          await markOrderPending(session);
+        }
+        break;
+      }
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object as Stripe.Checkout.Session;
         await markOrderPaid(session);
         break;
       }
@@ -65,6 +78,17 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
+/** Common columns for an order row, derived only from the verified session. */
+function orderRow(session: Stripe.Checkout.Session) {
+  return {
+    stripe_session_id: session.id,
+    stripe_payment_intent: (session.payment_intent as string) ?? null,
+    email: session.customer_details?.email ?? null,
+    amount_total_thb: Math.round((session.amount_total ?? 0) / 100),
+    currency: session.currency ?? "thb",
+  };
+}
+
 async function markOrderPaid(session: Stripe.Checkout.Session) {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
@@ -72,12 +96,8 @@ async function markOrderPaid(session: Stripe.Checkout.Session) {
   // Idempotent upsert keyed by the Stripe session id.
   const { error } = await supabase.from("orders").upsert(
     {
-      stripe_session_id: session.id,
-      stripe_payment_intent: (session.payment_intent as string) ?? null,
+      ...orderRow(session),
       status: "paid",
-      email: session.customer_details?.email ?? null,
-      amount_total_thb: Math.round((session.amount_total ?? 0) / 100),
-      currency: session.currency ?? "thb",
       paid_at: new Date().toISOString(),
     },
     { onConflict: "stripe_session_id" },
@@ -85,9 +105,29 @@ async function markOrderPaid(session: Stripe.Checkout.Session) {
   if (error) throw error;
 }
 
+/**
+ * Record a completed session whose payment has not settled yet (PromptPay in
+ * flight). Keeps `paid_at` null; a later `async_payment_succeeded` promotes it.
+ */
+async function markOrderPending(session: Stripe.Checkout.Session) {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabase = createAdminClient();
+
+  const { error } = await supabase.from("orders").upsert(
+    {
+      ...orderRow(session),
+      status: "pending",
+    },
+    { onConflict: "stripe_session_id", ignoreDuplicates: false },
+  );
+  if (error) throw error;
+}
+
 async function markOrderFailed(session: Stripe.Checkout.Session) {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
+  // Only touch a row that actually exists — an expired session that never
+  // reached `completed` has no order to cancel.
   const { error } = await supabase
     .from("orders")
     .update({ status: "cancelled" })
