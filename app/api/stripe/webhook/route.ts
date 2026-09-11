@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
+import {
+  nullUnknownProductIds,
+  orderItemRowsFromLineItems,
+  orderRowFromSession,
+  referencedProductIds,
+  resolveOrderOutcome,
+} from "@/lib/checkout";
 import { serverEnv } from "@/lib/env";
 import { getStripe } from "@/lib/stripe";
 
@@ -41,31 +48,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        // For synchronous methods (card) this is already `paid`. For delayed
-        // methods (PromptPay) the session completes while payment is still
-        // processing — do NOT mark it paid until `payment_status` says so;
-        // the real confirmation arrives as `async_payment_succeeded`.
-        await writeOrder(session, session.payment_status === "paid" ? "paid" : "pending");
-        break;
-      }
-      case "checkout.session.async_payment_succeeded": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        await writeOrder(session, "paid");
-        break;
-      }
-      case "checkout.session.expired":
-      case "checkout.session.async_payment_failed": {
-        const session = event.data.object as Stripe.Checkout.Session;
+    if (isSessionEvent(event.type)) {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const outcome = resolveOrderOutcome(event.type, session);
+      if (outcome === "cancelled") {
         await markOrderFailed(session);
-        break;
+      } else if (outcome) {
+        await writeOrder(session, outcome);
       }
-      default:
-        // Acknowledge unhandled event types so Stripe stops retrying.
-        break;
     }
+    // Any other event type is acknowledged so Stripe stops retrying.
   } catch (err) {
     console.error(`Webhook handler error for ${event.type}:`, err);
     // 500 → Stripe will retry with back-off.
@@ -73,6 +65,10 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+function isSessionEvent(type: string): boolean {
+  return type.startsWith("checkout.session.");
 }
 
 /**
@@ -87,24 +83,11 @@ async function writeOrder(
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
 
-  const userId =
-    session.client_reference_id ?? session.metadata?.user_id ?? null;
-
   const { data: order, error } = await supabase
     .from("orders")
-    .upsert(
-      {
-        stripe_session_id: session.id,
-        stripe_payment_intent: (session.payment_intent as string) ?? null,
-        user_id: userId,
-        status,
-        email: session.customer_details?.email ?? null,
-        amount_total_thb: Math.round((session.amount_total ?? 0) / 100),
-        currency: session.currency ?? "thb",
-        paid_at: status === "paid" ? new Date().toISOString() : null,
-      },
-      { onConflict: "stripe_session_id" },
-    )
+    .upsert(orderRowFromSession(session, status), {
+      onConflict: "stripe_session_id",
+    })
     .select("id")
     .single();
   if (error) throw error;
@@ -123,32 +106,18 @@ async function syncOrderItems(
     { limit: 100, expand: ["data.price.product"] },
   );
 
-  const draft = lineItems.data.map((li) => {
-    const product = li.price?.product as Stripe.Product | undefined;
-    return {
-      order_id: orderId,
-      product_id: product?.metadata?.product_id ?? null,
-      name: li.description ?? product?.name ?? "สินค้า",
-      unit_price_thb: Math.round((li.price?.unit_amount ?? 0) / 100),
-      quantity: li.quantity ?? 1,
-    };
-  });
+  const draft = orderItemRowsFromLineItems(lineItems.data, orderId);
 
-  // Null out any product_id that no longer exists in the catalogue so the
-  // FK insert can't fail (and wedge webhook retries). The name is kept.
-  const ids = [...new Set(draft.map((r) => r.product_id).filter(Boolean))];
-  const known = new Set<string>();
+  const ids = referencedProductIds(draft);
+  let knownIds: string[] = [];
   if (ids.length > 0) {
     const { data: existing } = await supabase
       .from("products")
       .select("id")
-      .in("id", ids as string[]);
-    for (const p of existing ?? []) known.add(p.id as string);
+      .in("id", ids);
+    knownIds = (existing ?? []).map((p) => p.id as string);
   }
-  const rows = draft.map((r) => ({
-    ...r,
-    product_id: r.product_id && known.has(r.product_id) ? r.product_id : null,
-  }));
+  const rows = nullUnknownProductIds(draft, knownIds);
 
   const { error: delError } = await supabase
     .from("order_items")
