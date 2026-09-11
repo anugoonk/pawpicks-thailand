@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignInForm } from "@/components/sign-in-form";
+import { isAdmin } from "@/lib/admin";
 import { hasSupabase } from "@/lib/env";
 import { formatThb } from "@/lib/format";
 import { getMyOrders } from "@/lib/orders";
@@ -56,7 +57,7 @@ export default async function AccountPage({
     );
   }
 
-  const orders = await getMyOrders();
+  const [orders, admin] = await Promise.all([getMyOrders(), isAdmin()]);
 
   return (
     <main id="top">
@@ -68,11 +69,18 @@ export default async function AccountPage({
             </p>
             <h1 className="account-title">{user.email}</h1>
           </div>
-          <form action="/auth/signout" method="post">
-            <button className="account-signout" type="submit">
-              ออกจากระบบ
-            </button>
-          </form>
+          <div className="account-head-actions">
+            {admin ? (
+              <Link href="/admin/orders" className="account-admin-link">
+                หน้าแอดมิน
+              </Link>
+            ) : null}
+            <form action="/auth/signout" method="post">
+              <button className="account-signout" type="submit">
+                ออกจากระบบ
+              </button>
+            </form>
+          </div>
         </div>
 
         <h2 className="account-subtitle">ประวัติการสั่งซื้อ</h2>

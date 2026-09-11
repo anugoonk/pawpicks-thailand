@@ -29,11 +29,12 @@ type OrderRow = {
 };
 
 /**
- * The signed-in user's orders, newest first. Relies on the RLS policy
- * "orders: read own" — the cookie-bound server client only ever sees rows
- * where `user_id = auth.uid()`. Returns [] when signed out or unconfigured.
+ * Orders visible to the signed-in caller, newest first. Relies on the RLS
+ * policy "orders: read own" (`user_id = auth.uid() or is_admin()`) — the
+ * cookie-bound server client sees only its own orders, or every order when
+ * the caller is an admin. Returns [] when signed out or unconfigured.
  */
-export async function getMyOrders(): Promise<MyOrder[]> {
+export async function getMyOrders(limit = 50): Promise<MyOrder[]> {
   if (!hasSupabase()) return [];
 
   const { createClient } = await import("@/lib/supabase/server");
@@ -45,7 +46,7 @@ export async function getMyOrders(): Promise<MyOrder[]> {
       "id, status, amount_total_thb, currency, created_at, order_items(name, quantity, unit_price_thb)",
     )
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(limit);
 
   if (error || !data) return [];
 
