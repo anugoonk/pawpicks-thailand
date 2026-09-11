@@ -35,17 +35,18 @@
 
 ## D. Vercel
 
-- [ ] Import repo `pawpicks-thailand` เข้า Vercel, Production Branch = `main` (zero-config — Next.js auto-detect)
-- [ ] ตั้ง Environment Variables ครบใน **Production** scope: `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAIL`, `SHIPPING_FLAT_RATE`, `FREE_SHIPPING_THRESHOLD` (`HEALTH_CHECK_TOKEN` ถ้าจะใช้)
-- [ ] `NEXT_PUBLIC_*` ตัวที่ไม่ใช่ secret ใส่ใน **Preview** scope ด้วย (ค่า Supabase Dev) ให้ preview deployment ของ PR ใช้งานได้
-- [ ] deploy ครั้งแรกสำเร็จ, `/api/health` คืน `200`. (ถ้าตั้ง `HEALTH_CHECK_TOKEN` ไว้: `/api/health?token=<token>` ต้องมี `checks.supabaseConfigured / stripeConfigured = true` — ไม่ตั้ง token = health เผยแค่ status)
+- [x] Import repo `pawpicks-thailand` เข้า Vercel — `vercel link` เชื่อม GitHub อัตโนมัติ, project `anugoonk-s-projects/pawpicks-thailand` (2026-09-11)
+- [x] ตั้ง Environment Variables (Production): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy JWT anon key — ไม่ใช่ `sb_publishable_...`), `SUPABASE_SERVICE_ROLE_KEY` (legacy JWT — Secret type), `NEXT_PUBLIC_SITE_URL`
+- [ ] ยังไม่ตั้ง: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (รอทำขั้น C ก่อน), `ADMIN_EMAIL` (ต้องตัดสินใจว่าใช้อีเมลไหน), `HEALTH_CHECK_TOKEN` (ถ้าจะใช้)
+- [ ] `NEXT_PUBLIC_*` ใส่ใน **Preview** scope ด้วย (ค่า Supabase Dev — ยังไม่มีโปรเจกต์ Dev แยก ใช้ prod ไปก่อนได้ถ้ายอมรับความเสี่ยง)
+- [x] deploy ครั้งแรกสำเร็จ, `/api/health` คืน `200` — https://pawpicks-thailand.vercel.app (2026-09-11)
 - [ ] ตั้ง spend notification ที่ Vercel > Settings > Billing และตรวจประมาณการค่าใช้จ่าย
 
 ## E. โดเมน & SEO
 
-- [ ] เชื่อม custom domain (เมื่อพร้อม) + HTTPS ทำงาน
-- [ ] `NEXT_PUBLIC_SITE_URL` ตรงกับโดเมนจริง (มีผลกับ metadata / OG / Stripe redirect / robots+sitemap — ทั้งคู่ gen ตอน build)
-- [x] `robots.txt` / `sitemap.xml` — มีแล้ว (`app/robots.ts`, `app/sitemap.ts`); ตรวจว่า `/robots.txt` ชี้โดเมนจริงหลัง deploy
+- [ ] เชื่อม custom domain (เมื่อพร้อม) + HTTPS ทำงาน — ตอนนี้ใช้ `pawpicks-thailand.vercel.app` (HTTPS โดย default)
+- [x] `NEXT_PUBLIC_SITE_URL` ตรงกับโดเมนจริง — ตั้งเป็น `https://pawpicks-thailand.vercel.app` แล้ว (ต้องเปลี่ยนอีกทีถ้าต่อ custom domain ทีหลัง)
+- [x] `robots.txt` / `sitemap.xml` — ยืนยันแล้วว่าชี้โดเมนจริงบน production
 
 ## F. หลัง Deploy (smoke test บน production)
 
