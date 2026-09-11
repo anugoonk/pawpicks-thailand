@@ -7,11 +7,11 @@
 | Frontend / Full-stack | Next.js (stable) · App Router · TypeScript · RSC · Server Actions / Route Handlers · Zod |
 | Database / Auth / Storage | Supabase (PostgreSQL + Auth + Storage + RLS) |
 | Payment | Stripe Checkout (Card + PromptPay) + Webhook |
-| Hosting (Production) | Firebase App Hosting (deploy อัตโนมัติจาก `main`) |
+| Hosting (Production) | Vercel (deploy อัตโนมัติจาก `main`, zero-config สำหรับ Next.js) |
 | CI | GitHub Actions (lint / typecheck / test / build / audit) — ไม่ deploy |
 | Source control | GitHub **Private** repo · `main` / `develop` / `feature/*` |
 
-> ขอบเขตบริการถูกล็อกไว้ไม่ให้ซ้ำซ้อน: **Firebase = hosting เท่านั้น** (ไม่ใช้ Firestore / Firebase Auth / Firebase Storage), **Supabase = database + auth + storage**, ยังไม่ใช้ Cloudflare ใน Phase 1
+> ขอบเขตบริการถูกล็อกไว้ไม่ให้ซ้ำซ้อน: **Vercel = hosting เท่านั้น** (ไม่ใช้ KV/Blob/Postgres ของ Vercel เอง), **Supabase = database + auth + storage**, ยังไม่ใช้ Cloudflare ใน Phase 1
 
 ---
 
@@ -70,7 +70,7 @@ app/
   globals.css           CSS เดิม (styles.css + cats.css) — คงไว้ทั้งหมด
   not-found.tsx
   api/
-    health/route.ts     health check ให้ Firebase
+    health/route.ts     health check สำหรับ post-deploy smoke test
     checkout/route.ts    สร้าง Stripe Checkout Session (คำนวณราคาฝั่ง server)
     stripe/webhook/route.ts   รับ webhook — ตรวจ signature ก่อนตั้ง order = paid
 components/              header, product grid (filter), sections, query-link ...
@@ -83,10 +83,8 @@ lib/
   stripe.ts
 supabase/
   config.toml
-  migrations/            20260910120000_init.sql, 20260910120100_rls.sql
+  migrations/            20260910120000_init.sql, 20260910120100_rls.sql, ...
   seed.sql
-apphosting.yaml          Firebase App Hosting build/runtime + secret refs
-firebase.json
 .github/workflows/ci.yml
 legacy-static/            เว็บ static เดิม (เก็บไว้อ้างอิง ไม่ได้ใช้งาน)
 ```

@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getSiteUrl, hasStripe, serverEnv } from "@/lib/env";
+import { getSiteUrl, hasStripe, hasSupabase, serverEnv } from "@/lib/env";
 import { getProductsByIds } from "@/lib/products";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { getStripe, assertTestModeOutsideProduction } from "@/lib/stripe";
 import { checkoutRequestSchema } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Unauthenticated endpoint that hits the Stripe API — cap requests per IP.
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
 
 /**
  * Create a Stripe Checkout Session.
@@ -24,6 +29,18 @@ export async function POST(request: Request) {
   }
   assertTestModeOutsideProduction();
 
+  const limit = rateLimit(
+    `checkout:${clientIp(request)}`,
+    RATE_LIMIT,
+    RATE_WINDOW_MS,
+  );
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -40,7 +57,14 @@ export async function POST(request: Request) {
   }
 
   const { items } = parsed.data;
-  const products = await getProductsByIds(items.map((i) => i.productId));
+
+  let products;
+  try {
+    products = await getProductsByIds(items.map((i) => i.productId));
+  } catch (err) {
+    console.error("checkout: product price lookup failed —", err);
+    return NextResponse.json({ error: "pricing_unavailable" }, { status: 503 });
+  }
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   let subtotalThb = 0;
@@ -74,12 +98,18 @@ export async function POST(request: Request) {
   const siteUrl = getSiteUrl();
   const stripe = getStripe();
 
+  // Link the order to a signed-in customer when there is one. Best-effort:
+  // guest checkout stays fully supported.
+  const customer = await currentCustomer();
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card", "promptpay"],
     line_items: lineItems,
     currency: "thb",
     locale: "th",
+    ...(customer?.id ? { client_reference_id: customer.id } : {}),
+    ...(customer?.email ? { customer_email: customer.email } : {}),
     shipping_options:
       shippingThb > 0
         ? [
@@ -97,10 +127,27 @@ export async function POST(request: Request) {
     metadata: {
       subtotal_thb: String(subtotalThb),
       shipping_thb: String(shippingThb),
+      ...(customer?.id ? { user_id: customer.id } : {}),
     },
   });
 
   // NOTE: order rows are created/confirmed from the verified webhook
   // (app/api/stripe/webhook), never here — this response can be lost.
   return NextResponse.json({ id: session.id, url: session.url });
+}
+
+/** The signed-in Supabase user, or null (guest / Supabase not configured). */
+async function currentCustomer(): Promise<{ id: string; email?: string } | null> {
+  if (!hasSupabase()) return null;
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    return { id: user.id, email: user.email ?? undefined };
+  } catch {
+    return null;
+  }
 }

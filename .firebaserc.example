@@ -1,6 +1,0 @@
-{
-  "_comment": "Copy to .firebaserc (git-ignored) and fill in your real project id after `firebase use --add`.",
-  "projects": {
-    "default": "pawpicks-thailand-prod"
-  }
-}

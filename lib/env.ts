@@ -7,7 +7,7 @@ import { z } from "zod";
  *   `server-only` at the call sites that need secrets.
  * - Public values (safe for the browser) live in `publicEnv`.
  * - Validation is lazy so that `next build` does not require production
- *   secrets to be present (Firebase App Hosting injects them at runtime).
+ *   secrets to be present (the hosting platform injects them at runtime).
  */
 
 const publicSchema = z.object({
@@ -24,6 +24,9 @@ const serverSchema = z.object({
   ADMIN_EMAIL: z.string().email().optional(),
   SHIPPING_FLAT_RATE: z.coerce.number().nonnegative().default(50),
   FREE_SHIPPING_THRESHOLD: z.coerce.number().nonnegative().default(1500),
+  // When set, /api/health only reveals the `checks` detail to callers that
+  // pass `?token=<this>`. Unset → `checks` is omitted for everyone.
+  HEALTH_CHECK_TOKEN: z.string().min(1).optional(),
 });
 
 export const publicEnv = publicSchema.parse({

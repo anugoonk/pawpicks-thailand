@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
+import { formatThb } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
 function haystack(p: Product): string {
@@ -19,7 +21,15 @@ function haystack(p: Product): string {
 
 export function ProductGrid({ products }: { products: Product[] }) {
   const { query } = useSearch();
+  const { add, setCartOpen } = useCart();
+  const [added, setAdded] = useState<string | null>(null);
   const term = query.trim().toLowerCase();
+
+  function addToCart(id: string) {
+    add(id);
+    setAdded(id);
+    window.setTimeout(() => setAdded((cur) => (cur === id ? null : cur)), 1400);
+  }
 
   const matches = useMemo(
     () => products.map((p) => !term || haystack(p).includes(term)),
@@ -60,9 +70,33 @@ export function ProductGrid({ products }: { products: Product[] }) {
               <small>{p.category}</small>
               <h3>{p.name}</h3>
               <p>{p.description}</p>
-              <a href={p.shopeeUrl} target="_blank" rel="sponsored noopener">
-                ดูสินค้าบน Shopee →
-              </a>
+              <div className="product-actions">
+                <button
+                  className="add-to-cart"
+                  onClick={() => addToCart(p.id)}
+                  aria-label={`เพิ่ม ${p.name} ลงตะกร้า`}
+                >
+                  {added === p.id
+                    ? "เพิ่มแล้ว ✓"
+                    : `เพิ่มลงตะกร้า · ${formatThb(p.priceThb)}`}
+                </button>
+                <div className="product-links">
+                  <button
+                    className="link-button"
+                    onClick={() => setCartOpen(true)}
+                  >
+                    ดูตะกร้า
+                  </button>
+                  <a
+                    href={p.shopeeUrl}
+                    target="_blank"
+                    rel="sponsored noopener"
+                    className="shopee-link"
+                  >
+                    ดูบน Shopee ↗
+                  </a>
+                </div>
+              </div>
             </div>
           </article>
         ))}

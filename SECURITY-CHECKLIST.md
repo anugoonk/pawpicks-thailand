@@ -9,7 +9,7 @@
 - [ ] ไม่มี `sk_live_...`, `sk_test_...`, `service_role` JWT, `whsec_...` ในโค้ด/ประวัติ commit
 - [ ] GitHub repo เป็น **Private** และไม่เคยถูกตั้งเป็น Public
 - [ ] เปิด GitHub secret scanning + push protection (Settings > Code security)
-- [ ] `.gitignore` ครอบ `.env*`, `.firebaserc`, `supabase/.temp`, `.firebase/`
+- [ ] `.gitignore` ครอบ `.env*`, `.vercel`, `supabase/.temp`
 - [ ] CI job "Guard against committed secrets" อยู่และผ่าน
 
 ## 2. ขอบเขต Client / Server
@@ -51,7 +51,7 @@
 ## 6. Logging & Privacy
 
 - [ ] error log ไม่มี PII / email / เลข payment intent เต็ม
-- [ ] ตั้ง log retention ที่ Firebase / Google Cloud ตามเหมาะสม
+- [ ] ตั้ง log retention ที่ Vercel (Observability) ตามเหมาะสม
 - [ ] ไม่มี table ที่เปิด public โดยไม่จำเป็น
 
 ## 7. Dependencies

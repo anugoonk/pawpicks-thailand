@@ -34,16 +34,7 @@ next-env.d.ts
 /supabase/.temp
 /supabase/.env
 
-# firebase
-.firebase/
-firebase-debug.log
-firebase-debug.*.log
-.firebaserc
-.firebaserc.local
-apphosting.emulator.yaml
-apphosting.local.yaml
-
-# vercel (not used, guard anyway)
+# vercel
 .vercel
 
 # logs
@@ -60,7 +51,13 @@ Thumbs.db
 !.vscode/extensions.json
 *.swp
 
+# claude code — personal per-project overrides
+.claude/settings.local.json
+
 # misc
 *.pem
 .turbo
 tsconfig.tsbuildinfo
+
+.vercel
+.env*
