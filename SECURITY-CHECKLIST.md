@@ -50,7 +50,7 @@
 
 ## 6. Logging & Privacy
 
-- [ ] error log ไม่มี PII / email / เลข payment intent เต็ม
+- [ ] error log ไม่มี PII / email / ที่อยู่จัดส่ง / เบอร์โทร / เลข payment intent เต็ม (webhook handler ไม่ log payload)
 - [ ] ตั้ง log retention ที่ Vercel (Observability) ตามเหมาะสม
 - [ ] ไม่มี table ที่เปิด public โดยไม่จำเป็น
 

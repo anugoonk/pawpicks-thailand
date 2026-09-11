@@ -28,6 +28,35 @@ export function resolveOrderOutcome(
   }
 }
 
+export type ShippingAddress = {
+  name: string | null;
+  phone: string | null;
+  line1: string | null;
+  line2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+};
+
+/** Extract the delivery address Checkout collected, or null if there isn't one. */
+export function shippingAddressFromSession(
+  session: Pick<Stripe.Checkout.Session, "shipping_details">,
+): ShippingAddress | null {
+  const sd = session.shipping_details;
+  if (!sd) return null;
+  return {
+    name: sd.name ?? null,
+    phone: sd.phone ?? null,
+    line1: sd.address?.line1 ?? null,
+    line2: sd.address?.line2 ?? null,
+    city: sd.address?.city ?? null,
+    state: sd.address?.state ?? null,
+    postalCode: sd.address?.postal_code ?? null,
+    country: sd.address?.country ?? null,
+  };
+}
+
 export type OrderRow = {
   stripe_session_id: string;
   stripe_payment_intent: string | null;
@@ -37,6 +66,7 @@ export type OrderRow = {
   amount_total_thb: number;
   currency: string;
   paid_at: string | null;
+  shipping_address: ShippingAddress | null;
 };
 
 /** Build the `orders` row from a verified session. `now` keeps it testable. */
@@ -57,6 +87,7 @@ export function orderRowFromSession(
     amount_total_thb: Math.round((session.amount_total ?? 0) / 100),
     currency: session.currency ?? "thb",
     paid_at: status === "paid" ? now.toISOString() : null,
+    shipping_address: shippingAddressFromSession(session),
   };
 }
 

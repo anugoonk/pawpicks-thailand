@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SignInForm } from "@/components/sign-in-form";
 import { isAdmin } from "@/lib/admin";
 import { hasSupabase } from "@/lib/env";
-import { formatThb } from "@/lib/format";
+import { formatShippingAddress, formatThb } from "@/lib/format";
 import { getMyOrders } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
@@ -118,6 +118,12 @@ export default async function AccountPage({
                   <span>ยอดรวม</span>
                   <span>{formatThb(o.amountTotalThb)}</span>
                 </div>
+                {o.shippingAddress ? (
+                  <p className="order-ref">
+                    จัดส่งไปที่: {o.shippingAddress.name ?? ""}{" "}
+                    {formatShippingAddress(o.shippingAddress) ?? ""}
+                  </p>
+                ) : null}
                 <p className="order-ref">เลขอ้างอิง: {o.id.slice(0, 8).toUpperCase()}</p>
               </li>
             ))}

@@ -8,6 +8,7 @@ function row(overrides: Partial<OrderRow> = {}): OrderRow {
     amount_total_thb: 940,
     currency: "thb",
     created_at: "2026-09-11T00:00:00.000Z",
+    shipping_address: null,
     order_items: [
       { name: "น้ำพุแมวอัตโนมัติ", quantity: 2, unit_price_thb: 890 },
     ],
@@ -23,8 +24,25 @@ describe("mapOrderRow", () => {
       amountTotalThb: 940,
       currency: "thb",
       createdAt: "2026-09-11T00:00:00.000Z",
+      shippingAddress: null,
       items: [{ name: "น้ำพุแมวอัตโนมัติ", quantity: 2, unitPriceThb: 890 }],
     });
+  });
+
+  it("passes a shipping address through unchanged", () => {
+    const address = {
+      name: "สมชาย ใจดี",
+      phone: "0812345678",
+      line1: "123 ถ.สุขุมวิท",
+      line2: null,
+      city: "กรุงเทพมหานคร",
+      state: null,
+      postalCode: "10110",
+      country: "TH",
+    };
+    expect(mapOrderRow(row({ shipping_address: address })).shippingAddress).toEqual(
+      address,
+    );
   });
 
   it("defaults a null amount to 0 and null currency to thb", () => {

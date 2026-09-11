@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { updateOrderStatus } from "@/app/admin/orders/actions";
 import { isAdmin } from "@/lib/admin";
-import { formatThb } from "@/lib/format";
+import { formatShippingAddress, formatThb } from "@/lib/format";
 import { getMyOrders } from "@/lib/orders";
 import { orderStatusSchema } from "@/lib/types";
 
@@ -74,6 +74,7 @@ export default async function AdminOrdersPage() {
                   <th>วันที่</th>
                   <th>เลขอ้างอิง</th>
                   <th>รายการ</th>
+                  <th>จัดส่งไปที่</th>
                   <th>ยอดรวม</th>
                   <th>สถานะ</th>
                 </tr>
@@ -87,6 +88,20 @@ export default async function AdminOrdersPage() {
                       {o.items.length === 0
                         ? "—"
                         : o.items.map((it) => `${it.name} ×${it.quantity}`).join(", ")}
+                    </td>
+                    <td>
+                      {o.shippingAddress ? (
+                        <>
+                          {o.shippingAddress.name ?? "—"}
+                          <br />
+                          <span style={{ color: "var(--muted)", fontSize: ".82rem" }}>
+                            {formatShippingAddress(o.shippingAddress) ?? "ไม่มีที่อยู่"}
+                            {o.shippingAddress.phone ? ` · ${o.shippingAddress.phone}` : ""}
+                          </span>
+                        </>
+                      ) : (
+                        <span style={{ color: "var(--muted)" }}>ยังไม่มีที่อยู่</span>
+                      )}
                     </td>
                     <td>{formatThb(o.amountTotalThb)}</td>
                     <td>

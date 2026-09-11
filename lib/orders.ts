@@ -1,6 +1,7 @@
 import "server-only";
 
 import { hasSupabase } from "@/lib/env";
+import type { ShippingAddress } from "@/lib/checkout";
 
 export type MyOrderItem = {
   name: string;
@@ -15,6 +16,7 @@ export type MyOrder = {
   currency: string;
   createdAt: string;
   items: MyOrderItem[];
+  shippingAddress: ShippingAddress | null;
 };
 
 export type OrderRow = {
@@ -23,6 +25,7 @@ export type OrderRow = {
   amount_total_thb: number | null;
   currency: string | null;
   created_at: string;
+  shipping_address: ShippingAddress | null;
   order_items:
     | { name: string; quantity: number; unit_price_thb: number }[]
     | null;
@@ -37,6 +40,7 @@ export function mapOrderRow(o: OrderRow): MyOrder {
     amountTotalThb: o.amount_total_thb ?? 0,
     currency: o.currency ?? "thb",
     createdAt: o.created_at,
+    shippingAddress: o.shipping_address ?? null,
     items: (o.order_items ?? []).map((it) => ({
       name: it.name,
       quantity: it.quantity,
@@ -60,7 +64,7 @@ export async function getMyOrders(limit = 50): Promise<MyOrder[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, status, amount_total_thb, currency, created_at, order_items(name, quantity, unit_price_thb)",
+      "id, status, amount_total_thb, currency, created_at, shipping_address, order_items(name, quantity, unit_price_thb)",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
