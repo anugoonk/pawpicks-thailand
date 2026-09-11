@@ -2,6 +2,11 @@ import "server-only";
 
 import { hasSupabase } from "@/lib/env";
 
+/** The only value of `profiles.role` that grants admin access. */
+export function isAdminRole(role: string | null | undefined): boolean {
+  return role === "admin";
+}
+
 /**
  * Whether the signed-in user has `profiles.role = 'admin'`. Backed by the
  * "profiles: read own" RLS policy — a user can only ever read their own row,
@@ -22,7 +27,7 @@ export async function isAdmin(): Promise<boolean> {
       .select("role")
       .eq("id", user.id)
       .maybeSingle();
-    return data?.role === "admin";
+    return isAdminRole(data?.role);
   } catch {
     return false;
   }

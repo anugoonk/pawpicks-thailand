@@ -17,7 +17,7 @@ export type MyOrder = {
   items: MyOrderItem[];
 };
 
-type OrderRow = {
+export type OrderRow = {
   id: string;
   status: string;
   amount_total_thb: number | null;
@@ -27,6 +27,23 @@ type OrderRow = {
     | { name: string; quantity: number; unit_price_thb: number }[]
     | null;
 };
+
+/** snake_case DB row -> camelCase app shape, with the same defaults as the
+ *  DB columns' `not null default` (0 baht, "thb", no items). */
+export function mapOrderRow(o: OrderRow): MyOrder {
+  return {
+    id: o.id,
+    status: o.status,
+    amountTotalThb: o.amount_total_thb ?? 0,
+    currency: o.currency ?? "thb",
+    createdAt: o.created_at,
+    items: (o.order_items ?? []).map((it) => ({
+      name: it.name,
+      quantity: it.quantity,
+      unitPriceThb: it.unit_price_thb,
+    })),
+  };
+}
 
 /**
  * Orders visible to the signed-in caller, newest first. Relies on the RLS
@@ -50,16 +67,5 @@ export async function getMyOrders(limit = 50): Promise<MyOrder[]> {
 
   if (error || !data) return [];
 
-  return (data as OrderRow[]).map((o) => ({
-    id: o.id,
-    status: o.status,
-    amountTotalThb: o.amount_total_thb ?? 0,
-    currency: o.currency ?? "thb",
-    createdAt: o.created_at,
-    items: (o.order_items ?? []).map((it) => ({
-      name: it.name,
-      quantity: it.quantity,
-      unitPriceThb: it.unit_price_thb,
-    })),
-  }));
+  return (data as OrderRow[]).map(mapOrderRow);
 }
