@@ -12,13 +12,13 @@
 
 ## B. Supabase (Production project)
 
-- [ ] สร้าง Supabase **Production** project แยกจาก Development
-- [ ] `supabase link --project-ref <prod-ref>` แล้ว `supabase db push` (หรือ deploy migration ผ่าน CI/manual ที่บันทึกไว้)
-- [ ] ตรวจว่า RLS เปิดครบทุกตาราง (รันสคริปต์ตรวจ / ดูใน Studio > Authentication > Policies)
-- [ ] seed เฉพาะข้อมูล catalogue (`seed.sql`) — ไม่ seed ข้อมูลทดสอบ order
-- [ ] สร้าง bucket `product-images` (public read) และอัปโหลดรูปสินค้าจริง
-- [ ] ตั้งบัญชี admin คนแรก: สมัครผ่าน Auth แล้ว `update public.profiles set role='admin' where email='<owner>'`
-- [ ] **Auth (magic link):** Studio > Authentication > URL Configuration → Site URL = โดเมนจริง; Redirect URLs allowlist ใส่ `https://<prod-domain>/auth/callback`
+- [x] สร้าง Supabase **Production** project แยกจาก Development — `anqnryqdpcnlixjxobfq` (2026-09-11)
+- [x] `supabase link --project-ref <prod-ref>` แล้ว `supabase db push` — 4/4 migrations synced (`supabase migration list --linked`), ล่าสุดรวม security-hardening migration จาก `db advisors`
+- [x] ตรวจว่า RLS เปิดครบทุกตาราง — ผ่าน `supabase db advisors --type security`; เหลือแค่ warning ที่ยอมรับได้ 1 จุด (`is_admin()` ต้องเรียกได้โดย anon/authenticated เพราะ RLS ใช้งาน — ดู comment ใน `20260911000001_*.sql`)
+- [x] seed เฉพาะข้อมูล catalogue (`seed.sql`) — รันแล้ว: 12 cats / 4 collections / 4 products
+- [x] สร้าง bucket `product-images` (public read) — สร้างแล้ว; **ยังต้องอัปโหลดรูปสินค้าจริง** (ต้องมีไฟล์รูปจากคุณ)
+- [ ] ตั้งบัญชี admin คนแรก: สมัครผ่าน Auth แล้ว `update public.profiles set role='admin' where email='<owner>'` — รอ deploy เสร็จ (ต้องมีเว็บให้สมัครก่อน)
+- [ ] **Auth (magic link):** Studio > Authentication > URL Configuration → Site URL = โดเมนจริง; Redirect URLs allowlist ใส่ `https://<prod-domain>/auth/callback` — รอโดเมนจริงจาก Firebase (ตอนนี้ `supabase/config.toml` ยังชี้ localhost ตั้งใจไม่ push ทับจนกว่าจะมีโดเมน)
 - [ ] **Auth email:** ตรวจ email template / rate limit; ถ้าส่งเยอะให้ตั้ง custom SMTP (built-in ของ Supabase จำกัดโควตา)
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` ของ prod เก็บใน Firebase App Hosting Secret เท่านั้น
 - [ ] ตั้ง Supabase usage / spend monitoring + alert
