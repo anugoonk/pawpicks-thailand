@@ -3,8 +3,8 @@ import "server-only";
 /**
  * Minimal in-process fixed-window rate limiter.
  *
- * Scope: per running instance. Firebase App Hosting can run up to
- * `maxInstances` of these, so the effective global limit is
+ * Scope: per running instance. A serverless host can run many concurrent
+ * function instances, so the effective global limit is
  * `limit * instanceCount` — enough to blunt scripted abuse of the
  * unauthenticated checkout endpoint without adding an external
  * dependency. Swap for Upstash Ratelimit (or similar) if a hard global
@@ -46,7 +46,7 @@ export function rateLimit(
   return { ok: true, retryAfterSec: 0 };
 }
 
-/** Best-effort client IP from proxy headers (GCLB / App Hosting set these). */
+/** Best-effort client IP from proxy headers (Vercel's edge network sets these). */
 export function clientIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();

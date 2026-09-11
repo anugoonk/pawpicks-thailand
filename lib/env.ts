@@ -7,7 +7,7 @@ import { z } from "zod";
  *   `server-only` at the call sites that need secrets.
  * - Public values (safe for the browser) live in `publicEnv`.
  * - Validation is lazy so that `next build` does not require production
- *   secrets to be present (Firebase App Hosting injects them at runtime).
+ *   secrets to be present (the hosting platform injects them at runtime).
  */
 
 const publicSchema = z.object({

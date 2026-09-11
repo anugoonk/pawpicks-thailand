@@ -3,13 +3,13 @@
 ## ภาพรวม
 
 ```
-feature/* ──PR──▶ develop ──(UAT)──PR──▶ main ──▶ Firebase App Hosting (auto rollout)
+feature/* ──PR──▶ develop ──(UAT)──PR──▶ main ──▶ Vercel (auto deploy)
      │              │                      │
    CI (PR)      CI (push)             Production Checklist
 ```
 
 - **CI ไม่ deploy** — ทำแค่ lint / typecheck / test / build / audit / ตรวจ secret
-- **Production deploy** เกิดอัตโนมัติเมื่อ merge เข้า `main` เท่านั้น (Firebase App Hosting ฟัง branch `main`)
+- **Production deploy** เกิดอัตโนมัติเมื่อ merge เข้า `main` เท่านั้น (Vercel ฟัง branch `main`); `develop` และ PR ทุกอันได้ Preview Deployment ของตัวเองจาก Vercel โดยอัตโนมัติเช่นกัน
 - ห้าม deploy production จากเครื่อง dev ตรง ๆ ยกเว้นเหตุฉุกเฉินที่บันทึกเหตุผลไว้
 
 Branch: `main` = production · `develop` = integration · `feature/*` งานฟีเจอร์ · `fix/*` แก้บั๊ก · `hotfix/*` แก้ production ด่วน
@@ -51,28 +51,32 @@ git push -u origin develop
 - Prod: เปิด Live mode, เพิ่ม webhook endpoint `https://<domain>/api/stripe/webhook`
   (events: `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_failed`)
 
-### 4. Firebase App Hosting
+### 4. Vercel
 
 ```bash
-npm i -g firebase-tools
-firebase login
-firebase use --add                # เลือก/สร้าง project -> เขียน .firebaserc (git-ignored)
+npm i -g vercel
+vercel login
+vercel link                        # ในโฟลเดอร์โปรเจกต์ — เลือก/สร้าง Vercel project
 ```
 
-ใน Firebase Console > App Hosting:
-- Create backend > เลือก region ใกล้ไทยสุดที่รองรับ (`asia-east1`)
-- Connect GitHub repo `pawpicks-thailand`, live branch = `main`, root = `/`
-- สร้าง secrets:
+ใน Vercel Dashboard (หรือ CLI):
+- Import Git Repository > เลือก `pawpicks-thailand`, Production Branch = `main`
+- Framework preset = Next.js (auto-detect, ไม่ต้องมี config file — zero-config)
+- Project Settings > Environment Variables ตั้งค่าแยก **Production** / **Preview** / **Development**:
   ```bash
-  firebase apphosting:secrets:set SUPABASE_SERVICE_ROLE_KEY
-  firebase apphosting:secrets:set STRIPE_SECRET_KEY
-  firebase apphosting:secrets:set STRIPE_WEBHOOK_SECRET
-  firebase apphosting:secrets:set NEXT_PUBLIC_SUPABASE_ANON_KEY
-  firebase apphosting:secrets:set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  vercel env add NEXT_PUBLIC_SITE_URL production
+  vercel env add NEXT_PUBLIC_SUPABASE_URL production
+  vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+  vercel env add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY production
+  vercel env add SUPABASE_SERVICE_ROLE_KEY production
+  vercel env add STRIPE_SECRET_KEY production
+  vercel env add STRIPE_WEBHOOK_SECRET production
+  vercel env add ADMIN_EMAIL production
+  # SHIPPING_FLAT_RATE / FREE_SHIPPING_THRESHOLD / HEALTH_CHECK_TOKEN ตามต้องการ
   ```
-  แล้ว grant ให้ backend เมื่อถูกถาม
-- แก้ค่า non-secret ใน `apphosting.yaml` (`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `ADMIN_EMAIL`, ฯลฯ) แล้ว commit
-- ตั้ง Budget Alert ที่ Firebase + Google Cloud Billing
+  ตัวแปร `NEXT_PUBLIC_*` ใส่ใน **Preview** ด้วย (ค่า dev/staging) ให้ preview deployment ของ PR ใช้งานได้; secret ฝั่ง server (`SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) ใส่เฉพาะ **Production** พอ
+- ตั้ง Spend/Budget notification ที่ Vercel > Settings > Billing (แจ้งเตือนเมื่อใกล้เกิน usage ฟรี/แผนปัจจุบัน)
+- region: Vercel เลือก edge network ให้อัตโนมัติ ไม่ต้องตั้งเอง (ต่างจาก Firebase App Hosting ที่ต้องล็อก region ตอนสร้าง)
 
 ---
 
@@ -84,7 +88,7 @@ firebase use --add                # เลือก/สร้าง project -> �
 4. รอ GitHub Actions "verify" ผ่าน + review
 5. Merge เข้า `develop` (squash) → ทดสอบ UAT
 
-> ต้องการ preview จริง: สร้าง backend/branch เพิ่มใน App Hosting ที่ฟัง `develop` (ไม่บังคับ Phase 1) หรือรัน `npm run build && npm start` ในเครื่อง
+> Vercel สร้าง Preview Deployment ให้อัตโนมัติทุก push/PR (ไม่ต้องตั้งอะไรเพิ่ม) — ใช้ URL preview นั้นทดสอบ UAT ได้เลย หรือรัน `npm run build && npm start` ในเครื่องก็ได้
 
 ---
 
@@ -94,8 +98,8 @@ firebase use --add                # เลือก/สร้าง project -> �
 2. ทำ `PRODUCTION-CHECKLIST.md` ให้ครบ
 3. CI ผ่าน + อนุมัติ PR
 4. **Merge เข้า `main`**
-5. Firebase App Hosting สร้าง rollout อัตโนมัติ (ดูสถานะใน Console > App Hosting > Rollouts)
-6. เมื่อ rollout = Live:
+5. Vercel deploy production อัตโนมัติ (ดูสถานะใน Vercel Dashboard > Deployments หรือ `vercel ls`)
+6. เมื่อ deploy = Ready:
    - เปิด `https://<domain>/api/health` → ต้อง `200`, `checks.*Configured = true`
    - ทดสอบ: หน้าแรก, ค้นหา, `POST /api/checkout`, จ่ายเงินทดสอบ → order `paid`
 7. พบปัญหา → ทำตาม `ROLLBACK-GUIDE.md`
@@ -112,6 +116,6 @@ firebase use --add                # เลือก/สร้าง project -> �
 
 1. `git switch -c hotfix/<ชื่อ>` จาก `main`
 2. แก้ให้เล็กที่สุด + build ผ่าน
-3. PR เข้า `main` (fast-track review) → merge → auto rollout
+3. PR เข้า `main` (fast-track review) → merge → auto deploy
 4. Cherry-pick / merge `main` กลับเข้า `develop`
 5. บันทึกใน incident log: อะไรเสีย, แก้อะไร, ใครอนุมัติ, เวลา

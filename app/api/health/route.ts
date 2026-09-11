@@ -4,7 +4,8 @@ import { hasStripe, hasSupabase, serverEnv } from "@/lib/env";
 export const dynamic = "force-dynamic";
 
 /**
- * Liveness / readiness probe for Firebase App Hosting health checks.
+ * Liveness / readiness probe, used by the post-deploy smoke test
+ * (see PRODUCTION-CHECKLIST.md).
  *
  * The bare probe returns only `{ status: "ok" }` so it discloses nothing
  * about how the deployment is configured. Config detail (`checks`) is

@@ -6,22 +6,22 @@
 
 | อาการ | ทำอะไรก่อน |
 | --- | --- |
-| หน้าเว็บ down / error ทั้งเว็บ หลัง rollout | **App Hosting rollback** (ข้อ 1) |
-| จ่ายเงินไม่ได้ / webhook พัง | ตรวจ Stripe + secret (ข้อ 3) ก่อน ถ้าไม่หายค่อย rollback |
+| หน้าเว็บ down / error ทั้งเว็บ หลัง deploy | **Vercel rollback** (ข้อ 1) |
+| จ่ายเงินไม่ได้ / webhook พัง | ตรวจ Stripe + env var (ข้อ 3) ก่อน ถ้าไม่หายค่อย rollback |
 | ข้อมูลผิดจาก migration | ระวัง — ดูข้อ 2 (อย่ารีบ rollback schema) |
-| ค่าใช้จ่ายพุ่ง | ลด `maxInstances` ใน `apphosting.yaml` / ปิด backend ชั่วคราว |
+| ค่าใช้จ่ายพุ่ง | ดู Vercel > Usage; ปิด/ลด concurrency ของ functions ที่ผิดปกติ (checkout/webhook) ชั่วคราวถ้าจำเป็น |
 
 บันทึกเวลาเริ่ม incident และคนที่ตัดสินใจไว้เสมอ
 
 ---
 
-## 1. Rollback Firebase App Hosting (เร็วสุด ไม่แตะ schema)
+## 1. Rollback Vercel (เร็วสุด ไม่แตะ schema)
 
-### วิธี A — Console
-1. Firebase Console > App Hosting > เลือก backend > **Rollouts**
-2. หา rollout ล่าสุดที่สถานะ **Live** และรู้ว่าดี
-3. เมนู ⋮ ของ rollout นั้น > **Roll back** (หรือ "Redeploy") → ยืนยัน
-4. รอสถานะเป็น Live แล้วเช็ก `/api/health`
+### วิธี A — Dashboard / CLI (เร็วสุด — instant rollback)
+1. Vercel Dashboard > โปรเจกต์ > **Deployments**
+2. หา deployment ล่าสุดที่สถานะ **Ready** และรู้ว่าดี (บน `main` / Production)
+3. เมนู ⋮ ของ deployment นั้น > **Promote to Production** (หรือ `vercel rollback <deployment-url>`) → ยืนยัน
+4. รอสถานะเป็น Ready แล้วเช็ก `/api/health` — ใช้เวลาไม่กี่วินาที ไม่ต้อง build ใหม่
 
 ### วิธี B — ผ่าน git (ให้ `main` ชี้ commit ดีตัวเดิม)
 ```bash
@@ -31,9 +31,9 @@ git revert --no-edit <bad_merge_commit>      # แนะนำ: revert เพื
 # หรือกรณีจำเป็นจริง ๆ:  git reset --hard <good_commit> && git push --force-with-lease origin main
 git push origin main
 ```
-การ push `main` จะ trigger rollout ใหม่อัตโนมัติจากโค้ดที่ดี
+การ push `main` จะ trigger deploy ใหม่อัตโนมัติจากโค้ดที่ดี
 
-> จด commit hash ของ production ที่ "ดี" ไว้ทุกครั้งหลัง deploy (ดู `PRODUCTION-CHECKLIST.md` ข้อ F)
+> จด commit hash / deployment URL ของ production ที่ "ดี" ไว้ทุกครั้งหลัง deploy (ดู `PRODUCTION-CHECKLIST.md` ข้อ F) — วิธี A เร็วกว่ามากเพราะไม่ต้อง build ใหม่
 
 ---
 
@@ -58,10 +58,10 @@ Schema rollback เสี่ยงข้อมูลหาย ทำเฉพา
 
 ## 3. Stripe / Secret ผิด (ไม่ต้อง rollback โค้ด)
 
-- `/api/health` แสดง `stripeConfigured=false` → secret ไม่ถูก mount: ตรวจ `firebase apphosting:secrets:...` และ grant ให้ backend แล้ว redeploy
+- `/api/health` แสดง `stripeConfigured=false` → env var ไม่ถูกตั้ง: ตรวจ Vercel > Settings > Environment Variables (scope = Production) แล้ว redeploy (ตัวแปรที่แก้ใหม่ต้อง trigger deploy ใหม่ถึงจะมีผล)
 - webhook 400 `invalid_signature` → `STRIPE_WEBHOOK_SECRET` ไม่ตรงกับ endpoint prod: ตั้งใหม่จาก Stripe > Webhooks > endpoint > Signing secret
 - webhook ไม่ถูกเรียก → ตรวจ URL endpoint, event types, และ Stripe > Webhooks > attempts/logs
-- คีย์รั่ว → **roll คีย์ทันที** ที่ Stripe/Supabase, อัปเดต secret, redeploy, แล้วตรวจ log การใช้งานย้อนหลัง
+- คีย์รั่ว → **roll คีย์ทันที** ที่ Stripe/Supabase, อัปเดต env var ใน Vercel, redeploy, แล้วตรวจ log การใช้งานย้อนหลัง
 
 ---
 

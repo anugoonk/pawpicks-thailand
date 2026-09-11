@@ -18,9 +18,9 @@
 - [x] seed เฉพาะข้อมูล catalogue (`seed.sql`) — รันแล้ว: 12 cats / 4 collections / 4 products
 - [x] สร้าง bucket `product-images` (public read) — สร้างแล้ว; **ยังต้องอัปโหลดรูปสินค้าจริง** (ต้องมีไฟล์รูปจากคุณ)
 - [ ] ตั้งบัญชี admin คนแรก: สมัครผ่าน Auth แล้ว `update public.profiles set role='admin' where email='<owner>'` — รอ deploy เสร็จ (ต้องมีเว็บให้สมัครก่อน)
-- [ ] **Auth (magic link):** Studio > Authentication > URL Configuration → Site URL = โดเมนจริง; Redirect URLs allowlist ใส่ `https://<prod-domain>/auth/callback` — รอโดเมนจริงจาก Firebase (ตอนนี้ `supabase/config.toml` ยังชี้ localhost ตั้งใจไม่ push ทับจนกว่าจะมีโดเมน)
+- [ ] **Auth (magic link):** Studio > Authentication > URL Configuration → Site URL = โดเมนจริง; Redirect URLs allowlist ใส่ `https://<prod-domain>/auth/callback` — รอโดเมนจริงจาก Vercel (ตอนนี้ `supabase/config.toml` ยังชี้ localhost ตั้งใจไม่ push ทับจนกว่าจะมีโดเมน)
 - [ ] **Auth email:** ตรวจ email template / rate limit; ถ้าส่งเยอะให้ตั้ง custom SMTP (built-in ของ Supabase จำกัดโควตา)
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` ของ prod เก็บใน Firebase App Hosting Secret เท่านั้น
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` ของ prod เก็บใน Vercel Environment Variable (Production scope) เท่านั้น
 - [ ] ตั้ง Supabase usage / spend monitoring + alert
 
 ## C. Stripe (Live mode)
@@ -29,19 +29,17 @@
 - [ ] เปิด payment methods: Card + PromptPay
 - [ ] สร้าง webhook endpoint: `https://<prod-domain>/api/stripe/webhook`
       events: `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_failed`
-- [ ] เก็บ `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_WEBHOOK_SECRET` (whsec_… ของ endpoint prod), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (pk_live_…) เป็น Firebase Secret
+- [ ] เก็บ `STRIPE_SECRET_KEY` (sk_live_…), `STRIPE_WEBHOOK_SECRET` (whsec_… ของ endpoint prod), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (pk_live_…) เป็น Vercel Environment Variable (Production scope)
 - [ ] ยิง test event จาก Stripe Dashboard → ตรวจว่า order ถูกสร้าง/อัปเดตใน Supabase
 - [ ] ตั้ง Stripe webhook failure alert
 
-## D. Firebase App Hosting
+## D. Vercel
 
-- [ ] สร้าง backend, เลือก region ใกล้ไทยสุดที่รองรับ (`asia-east1`) — **เปลี่ยนภายหลังไม่ได้**
-- [ ] เชื่อม GitHub repo `pawpicks-thailand`, rollout branch = `main`
-- [ ] สร้าง secrets ครบ (`firebase apphosting:secrets:set ...`) และ grant ให้ backend
-- [ ] `apphosting.yaml`: `NEXT_PUBLIC_SITE_URL` = โดเมนจริง, ค่า public อื่นถูกต้อง
+- [ ] Import repo `pawpicks-thailand` เข้า Vercel, Production Branch = `main` (zero-config — Next.js auto-detect)
+- [ ] ตั้ง Environment Variables ครบใน **Production** scope: `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAIL`, `SHIPPING_FLAT_RATE`, `FREE_SHIPPING_THRESHOLD` (`HEALTH_CHECK_TOKEN` ถ้าจะใช้)
+- [ ] `NEXT_PUBLIC_*` ตัวที่ไม่ใช่ secret ใส่ใน **Preview** scope ด้วย (ค่า Supabase Dev) ให้ preview deployment ของ PR ใช้งานได้
 - [ ] deploy ครั้งแรกสำเร็จ, `/api/health` คืน `200`. (ถ้าตั้ง `HEALTH_CHECK_TOKEN` ไว้: `/api/health?token=<token>` ต้องมี `checks.supabaseConfigured / stripeConfigured = true` — ไม่ตั้ง token = health เผยแค่ status)
-- [ ] ตั้ง Firebase + Google Cloud **Budget Alert** และตรวจประมาณการค่าใช้จ่าย
-- [ ] `minInstances`, `maxInstances`, `concurrency` เหมาะกับงบ
+- [ ] ตั้ง spend notification ที่ Vercel > Settings > Billing และตรวจประมาณการค่าใช้จ่าย
 
 ## E. โดเมน & SEO
 
@@ -58,4 +56,4 @@
 - [ ] จ่ายเงินจริงจำนวนน้อย (หรือ Stripe test clock) → webhook ตั้ง order = `paid`, มีแถวใน `order_items`, redirect ไป `/checkout/success` (ไม่ 404)
 - [ ] PromptPay: จ่ายแล้วทิ้ง → order = `pending` (ไม่ใช่ `paid`); จ่ายจริง → `async_payment_succeeded` เปลี่ยนเป็น `paid`
 - [ ] ตรวจ log ไม่มี secret / PII
-- [ ] เตรียมพร้อม `ROLLBACK-GUIDE.md` — รู้ว่า rollout ก่อนหน้าคือ commit ไหน
+- [ ] เตรียมพร้อม `ROLLBACK-GUIDE.md` — รู้ว่า deployment ก่อนหน้าที่ดีคือ commit/deployment ไหน
