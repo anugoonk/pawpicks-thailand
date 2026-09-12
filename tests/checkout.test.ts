@@ -6,6 +6,7 @@ import {
   orderRowFromSession,
   referencedProductIds,
   resolveOrderOutcome,
+  shippingAddressFromSession,
   type OrderItemRow,
 } from "@/lib/checkout";
 
@@ -114,6 +115,63 @@ describe("orderRowFromSession", () => {
     );
     expect(row.stripe_payment_intent).toBeNull();
     expect(row.amount_total_thb).toBe(0);
+  });
+
+  it("carries the shipping address Checkout collected", () => {
+    const row = orderRowFromSession(
+      session({
+        shipping_details: {
+          name: "สมชาย ใจดี",
+          phone: "0812345678",
+          address: {
+            line1: "123 ถ.สุขุมวิท",
+            line2: null,
+            city: "กรุงเทพมหานคร",
+            state: null,
+            postal_code: "10110",
+            country: "TH",
+          },
+        },
+      } as Partial<Stripe.Checkout.Session>),
+      "paid",
+      now,
+    );
+    expect(row.shipping_address).toEqual({
+      name: "สมชาย ใจดี",
+      phone: "0812345678",
+      line1: "123 ถ.สุขุมวิท",
+      line2: null,
+      city: "กรุงเทพมหานคร",
+      state: null,
+      postalCode: "10110",
+      country: "TH",
+    });
+  });
+
+  it("has no shipping address when Checkout didn't collect one", () => {
+    expect(orderRowFromSession(session(), "paid", now).shipping_address).toBeNull();
+  });
+});
+
+describe("shippingAddressFromSession", () => {
+  it("returns null when there's no shipping_details at all", () => {
+    expect(shippingAddressFromSession({ shipping_details: null })).toBeNull();
+  });
+
+  it("defaults missing sub-fields to null rather than undefined", () => {
+    const result = shippingAddressFromSession({
+      shipping_details: { name: undefined, phone: undefined, address: undefined },
+    } as unknown as Pick<Stripe.Checkout.Session, "shipping_details">);
+    expect(result).toEqual({
+      name: null,
+      phone: null,
+      line1: null,
+      line2: null,
+      city: null,
+      state: null,
+      postalCode: null,
+      country: null,
+    });
   });
 });
 

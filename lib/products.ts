@@ -55,6 +55,18 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 /**
+ * A single active product by slug, for the product detail page. Reuses
+ * getProducts() (Supabase, falling back to the static list on error) and
+ * finds by slug in memory — the catalogue is small enough that this is
+ * simpler than a second query path. A missing product means a 404, not a
+ * broken page.
+ */
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const products = await getProducts();
+  return products.find((p) => p.slug === slug) ?? null;
+}
+
+/**
  * Look up products by id for server-side price calculation at checkout.
  *
  * Unlike `getProducts`, this NEVER falls back to the static list when Supabase

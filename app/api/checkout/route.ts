@@ -110,6 +110,9 @@ export async function POST(request: Request) {
     locale: "th",
     ...(customer?.id ? { client_reference_id: customer.id } : {}),
     ...(customer?.email ? { customer_email: customer.email } : {}),
+    // Physical goods — collect where (and how to reach) the buyer for delivery.
+    shipping_address_collection: { allowed_countries: ["TH"] },
+    phone_number_collection: { enabled: true },
     shipping_options:
       shippingThb > 0
         ? [

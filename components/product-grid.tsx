@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
@@ -47,7 +48,11 @@ export function ProductGrid({ products }: { products: Product[] }) {
             data-search={p.searchKeywords}
             hidden={!matches[i]}
           >
-            <div className={`product-image ${p.imageCrop ?? ""}`.trim()}>
+            <Link
+              className={`product-image product-image-link ${p.imageCrop ?? ""}`.trim()}
+              href={`/products/${p.slug}`}
+              aria-label={`ดูรายละเอียด ${p.name}`}
+            >
               {/* Plain <img>: the original design crops via CSS transform:scale. */}
               <img src={p.image} alt={p.name} />
               {p.badge ? (
@@ -55,7 +60,7 @@ export function ProductGrid({ products }: { products: Product[] }) {
                   {p.badge}
                 </span>
               ) : null}
-            </div>
+            </Link>
             <div className="product-info">
               {p.companionCatId ? (
                 <a className="product-companion" href={`#${p.companionCatId}`}>
@@ -68,7 +73,11 @@ export function ProductGrid({ products }: { products: Product[] }) {
                 </a>
               ) : null}
               <small>{p.category}</small>
-              <h3>{p.name}</h3>
+              <h3>
+                <Link className="product-title-link" href={`/products/${p.slug}`}>
+                  {p.name}
+                </Link>
+              </h3>
               <p>{p.description}</p>
               <div className="product-actions">
                 <button
