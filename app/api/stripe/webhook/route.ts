@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
 import type Stripe from "stripe";
 import {
-  nullUnknownProductIds,
   orderItemRowsFromLineItems,
   orderRowFromSession,
-  referencedProductIds,
   resolveOrderOutcome,
 } from "@/lib/checkout";
 import { serverEnv } from "@/lib/env";
@@ -51,9 +49,7 @@ export async function POST(request: Request) {
     if (isSessionEvent(event.type)) {
       const session = event.data.object as Stripe.Checkout.Session;
       const outcome = resolveOrderOutcome(event.type, session);
-      if (outcome === "cancelled") {
-        await markOrderFailed(session);
-      } else if (outcome) {
+      if (outcome) {
         await writeOrder(session, outcome);
       }
     }
@@ -71,74 +67,20 @@ function isSessionEvent(type: string): boolean {
   return type.startsWith("checkout.session.");
 }
 
-/**
- * Upsert the order row (idempotent on `stripe_session_id`) and replace its
- * line items from the verified Stripe session. `status` is "pending" while a
- * delayed payment settles, then "paid".
- */
-async function writeOrder(
-  session: Stripe.Checkout.Session,
-  status: "pending" | "paid",
-) {
+/** Apply order, items and stock together; SQL handles retries and event order. */
+async function writeOrder(session: Stripe.Checkout.Session, status: "pending" | "paid" | "cancelled") {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
-
-  const { data: order, error } = await supabase
-    .from("orders")
-    .upsert(orderRowFromSession(session, status), {
-      onConflict: "stripe_session_id",
-    })
-    .select("id")
-    .single();
+  const lineItems = status === "cancelled" ? [] : (await getStripe().checkout.sessions.listLineItems(
+    session.id, { limit: 100, expand: ["data.price.product"] },
+  )).data;
+  const rows = orderItemRowsFromLineItems(lineItems, "");
+  const { error } = await supabase.rpc("apply_checkout_event", {
+    p_order: orderRowFromSession(session, status),
+    p_items: rows,
+    p_inventory_required: session.metadata?.inventory_required === "true",
+  });
   if (error) throw error;
-
-  await syncOrderItems(supabase, order.id, session.id);
-}
-
-/** Mirror the session's line items into `order_items` (delete + reinsert). */
-async function syncOrderItems(
-  supabase: SupabaseClient,
-  orderId: string,
-  stripeSessionId: string,
-) {
-  const lineItems = await getStripe().checkout.sessions.listLineItems(
-    stripeSessionId,
-    { limit: 100, expand: ["data.price.product"] },
-  );
-
-  const draft = orderItemRowsFromLineItems(lineItems.data, orderId);
-
-  const ids = referencedProductIds(draft);
-  let knownIds: string[] = [];
-  if (ids.length > 0) {
-    const { data: existing } = await supabase
-      .from("products")
-      .select("id")
-      .in("id", ids);
-    knownIds = (existing ?? []).map((p) => p.id as string);
-  }
-  const rows = nullUnknownProductIds(draft, knownIds);
-
-  const { error: delError } = await supabase
-    .from("order_items")
-    .delete()
-    .eq("order_id", orderId);
-  if (delError) throw delError;
-
-  if (rows.length > 0) {
-    const { error: insError } = await supabase.from("order_items").insert(rows);
-    if (insError) throw insError;
-  }
-}
-
-async function markOrderFailed(session: Stripe.Checkout.Session) {
-  const { createAdminClient } = await import("@/lib/supabase/admin");
-  const supabase = createAdminClient();
-  // Only touch a row that actually exists — an expired session that never
-  // reached `completed` has no order to cancel.
-  const { error } = await supabase
-    .from("orders")
-    .update({ status: "cancelled" })
-    .eq("stripe_session_id", session.id);
-  if (error) throw error;
+  revalidatePath("/"); revalidatePath("/products/[slug]", "page");
+  revalidatePath("/admin/products"); revalidatePath("/admin/orders"); revalidatePath("/account");
 }

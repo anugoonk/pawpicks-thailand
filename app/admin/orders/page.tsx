@@ -1,10 +1,10 @@
+import { STATUS_TH } from "@/lib/shipping";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { updateOrderStatus } from "@/app/admin/orders/actions";
+import { ShipmentForm } from "@/components/shipment-form";
 import { isAdmin } from "@/lib/admin";
 import { formatShippingAddress, formatThb } from "@/lib/format";
 import { getMyOrders } from "@/lib/orders";
-import { orderStatusSchema } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +13,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const STATUS_TH: Record<string, string> = {
-  pending: "รอชำระเงิน",
-  paid: "ชำระแล้ว",
-  fulfilled: "จัดส่งแล้ว",
-  cancelled: "ยกเลิก",
-  refunded: "คืนเงินแล้ว",
-};
 
 const dateTh = new Intl.DateTimeFormat("th-TH", {
   dateStyle: "medium",
@@ -58,12 +51,13 @@ export default async function AdminOrdersPage() {
 
   return (
     <main id="top">
-      <section className="section admin" style={{ maxWidth: 980 }}>
+      <section className="section admin" style={{ maxWidth: 1280 }}>
         <p className="eyebrow" style={{ color: "var(--muted)" }}>
           แอดมิน
         </p>
         <h1 className="account-title">คำสั่งซื้อทั้งหมด ({orders.length})</h1>
 
+        <nav className="admin-nav"><Link href="/admin/products">สินค้าและสต็อก</Link><Link href="/account">บัญชีของฉัน</Link></nav>
         {orders.length === 0 ? (
           <p style={{ color: "var(--muted)" }}>ยังไม่มีคำสั่งซื้อ</p>
         ) : (
@@ -105,23 +99,8 @@ export default async function AdminOrdersPage() {
                     </td>
                     <td>{formatThb(o.amountTotalThb)}</td>
                     <td>
-                      <form action={updateOrderStatus} className="admin-status-form">
-                        <input type="hidden" name="orderId" value={o.id} />
-                        <select
-                          name="status"
-                          defaultValue={o.status}
-                          className={`order-status order-status-${o.status}`}
-                        >
-                          {orderStatusSchema.options.map((s) => (
-                            <option key={s} value={s}>
-                              {STATUS_TH[s] ?? s}
-                            </option>
-                          ))}
-                        </select>
-                        <button type="submit" className="admin-status-save">
-                          บันทึก
-                        </button>
-                      </form>
+                      <p className={`order-status order-status-${o.status}`}>{STATUS_TH[o.status]}</p>
+                      <ShipmentForm order={o} />
                     </td>
                   </tr>
                 ))}

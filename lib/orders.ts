@@ -17,6 +17,9 @@ export type MyOrder = {
   createdAt: string;
   items: MyOrderItem[];
   shippingAddress: ShippingAddress | null;
+  shippingCarrier: string | null;
+  trackingNumber: string | null;
+  shippedAt: string | null;
 };
 
 export type OrderRow = {
@@ -26,6 +29,9 @@ export type OrderRow = {
   currency: string | null;
   created_at: string;
   shipping_address: ShippingAddress | null;
+  shipping_carrier?: string | null;
+  tracking_number?: string | null;
+  shipped_at?: string | null;
   order_items:
     | { name: string; quantity: number; unit_price_thb: number }[]
     | null;
@@ -41,6 +47,9 @@ export function mapOrderRow(o: OrderRow): MyOrder {
     currency: o.currency ?? "thb",
     createdAt: o.created_at,
     shippingAddress: o.shipping_address ?? null,
+    shippingCarrier: o.shipping_carrier ?? null,
+    trackingNumber: o.tracking_number ?? null,
+    shippedAt: o.shipped_at ?? null,
     items: (o.order_items ?? []).map((it) => ({
       name: it.name,
       quantity: it.quantity,
@@ -64,12 +73,13 @@ export async function getMyOrders(limit = 50): Promise<MyOrder[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, status, amount_total_thb, currency, created_at, shipping_address, order_items(name, quantity, unit_price_thb)",
+      "id, status, amount_total_thb, currency, created_at, shipping_address, shipping_carrier, tracking_number, shipped_at, order_items(name, quantity, unit_price_thb)",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error || !data) return [];
+  if (error) throw new Error("ไม่สามารถโหลดคำสั่งซื้อได้");
+  if (!data) return [];
 
   return (data as OrderRow[]).map(mapOrderRow);
 }

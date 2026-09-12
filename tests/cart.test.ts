@@ -28,6 +28,9 @@ function product(id: string, priceThb: number): Product {
     searchKeywords: "",
     active: true,
     sortOrder: 0,
+    details: { dimensions: "", material: "", instructions: "", suitableFor: "", images: [] },
+    stockQuantity: null,
+    lowStockThreshold: 5,
   };
 }
 

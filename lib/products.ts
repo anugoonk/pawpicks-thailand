@@ -5,7 +5,7 @@ import { hasSupabase } from "@/lib/env";
 import { productSchema, type Product } from "@/lib/types";
 
 /** Map a `products` table row (snake_case) to the app `Product` type. */
-function rowToProduct(row: Record<string, unknown>): Product {
+export function rowToProduct(row: Record<string, unknown>): Product {
   return productSchema.parse({
     id: row.id,
     slug: row.slug,
@@ -25,6 +25,9 @@ function rowToProduct(row: Record<string, unknown>): Product {
     searchKeywords: row.search_keywords ?? "",
     active: row.active ?? true,
     sortOrder: row.sort_order ?? 0,
+    details: row.details ?? {},
+    stockQuantity: row.stock_quantity ?? null,
+    lowStockThreshold: row.low_stock_threshold ?? 5,
   });
 }
 

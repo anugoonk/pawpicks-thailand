@@ -11,6 +11,7 @@ import {
 } from "react";
 import {
   clampQty,
+  availableQuantity,
   computeTotals,
   sanitizeStoredItems,
   type CartLine,
@@ -86,33 +87,37 @@ export function CartProvider({
 
   const add = useCallback(
     (productId: string, quantity = 1) => {
-      if (!byId.has(productId)) return;
+      const product = byId.get(productId);
+      const max = product ? availableQuantity(product) : 0;
+      if (max === 0) return;
       setItems((prev) => {
         const existing = prev.find((it) => it.productId === productId);
         if (existing) {
           return prev.map((it) =>
             it.productId === productId
-              ? { ...it, quantity: clampQty(it.quantity + quantity) }
+              ? { ...it, quantity: Math.min(max, clampQty(it.quantity + quantity)) }
               : it,
           );
         }
-        return [...prev, { productId, quantity: clampQty(quantity) }];
+        return [...prev, { productId, quantity: Math.min(max, clampQty(quantity)) }];
       });
     },
     [byId],
   );
 
   const setQuantity = useCallback((productId: string, quantity: number) => {
+    const product = byId.get(productId);
+    const max = product ? availableQuantity(product) : 0;
     setItems((prev) =>
-      quantity <= 0
+      quantity <= 0 || max === 0
         ? prev.filter((it) => it.productId !== productId)
         : prev.map((it) =>
             it.productId === productId
-              ? { ...it, quantity: clampQty(quantity) }
+              ? { ...it, quantity: Math.min(max, clampQty(quantity)) }
               : it,
           ),
     );
-  }, []);
+  }, [byId]);
 
   const remove = useCallback((productId: string) => {
     setItems((prev) => prev.filter((it) => it.productId !== productId));

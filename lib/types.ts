@@ -22,6 +22,16 @@ export const productSchema = z.object({
   searchKeywords: z.string().default(""),
   active: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
+  details: z.object({
+    dimensions: z.string().max(300).default(""),
+    material: z.string().max(300).default(""),
+    instructions: z.string().max(4000).default(""),
+    suitableFor: z.string().max(1000).default(""),
+    images: z.array(z.object({ src: z.string(), alt: z.string() })).max(8).default([]),
+  }).default({}),
+  /** Available units, excluding active checkout reservations. Null = unconfirmed. */
+  stockQuantity: z.number().int().nonnegative().nullable().default(null),
+  lowStockThreshold: z.number().int().nonnegative().default(5),
 });
 export type Product = z.infer<typeof productSchema>;
 
@@ -59,7 +69,8 @@ export type CartItem = z.infer<typeof cartItemSchema>;
 
 export const checkoutRequestSchema = z.object({
   items: z.array(cartItemSchema).min(1).max(50),
-});
+}).refine(({ items }) => new Set(items.map((i) => i.productId)).size === items.length,
+  { message: "Duplicate products are not allowed", path: ["items"] });
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 
 export const orderStatusSchema = z.enum([
