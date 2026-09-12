@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { formatThb } from "@/lib/format";
+import { availableQuantity, stockLabel } from "@/lib/cart";
 
 const ERROR_MESSAGES: Record<number, string> = {
+  409: "สต็อกสินค้ามีการเปลี่ยนแปลง กรุณารีเฟรชหน้าและปรับจำนวนก่อนชำระเงิน",
   429: "มีการสั่งซื้อบ่อยเกินไป กรุณาลองใหม่อีกครั้งในอีกสักครู่",
   503: "ระบบชำระเงินยังไม่พร้อมใช้งานชั่วคราว กรุณาลองใหม่ภายหลัง",
 };
@@ -27,6 +29,7 @@ export function CartPanel() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const invalidStock = lines.some(({ product, quantity }) => quantity > availableQuantity(product));
 
   // Close on Escape; lock body scroll while open.
   useEffect(() => {
@@ -49,7 +52,7 @@ export function CartPanel() {
   }, [cartOpen, subtotalThb]);
 
   async function checkout() {
-    if (checkoutItems.length === 0 || busy) return;
+    if (checkoutItems.length === 0 || busy || invalidStock) return;
     setBusy(true);
     setError(null);
     try {
@@ -133,6 +136,7 @@ export function CartPanel() {
                     <p className="cart-line-price">
                       {formatThb(product.priceThb)}
                     </p>
+                    <p className="stock-status">{stockLabel(product)}</p>
                     <div className="qty-stepper">
                       <button
                         onClick={() => setQuantity(product.id, quantity - 1)}
@@ -144,6 +148,7 @@ export function CartPanel() {
                       <button
                         onClick={() => setQuantity(product.id, quantity + 1)}
                         aria-label={`เพิ่มจำนวน ${product.name}`}
+                        disabled={quantity >= availableQuantity(product)}
                       >
                         +
                       </button>
@@ -186,11 +191,12 @@ export function CartPanel() {
                   {error}
                 </p>
               ) : null}
+              {invalidStock ? <p className="cart-error" role="alert">จำนวนสินค้าเกินสต็อก กรุณาลดจำนวนหรือลบสินค้าที่ไม่พร้อมส่ง</p> : null}
 
               <button
                 className="cart-checkout"
                 onClick={checkout}
-                disabled={busy}
+                disabled={busy || invalidStock}
               >
                 {busy ? "กำลังพาไปหน้าชำระเงิน…" : "ชำระเงินอย่างปลอดภัย"}
               </button>

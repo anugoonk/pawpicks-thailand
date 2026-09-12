@@ -3,6 +3,16 @@ import type { Product } from "@/lib/types";
 /** Max units of a single product per order — mirrors cartItemSchema. */
 export const MAX_QTY = 20;
 
+export function availableQuantity(product: Pick<Product, "active" | "stockQuantity">): number {
+  return product.active ? Math.min(MAX_QTY, product.stockQuantity ?? 0) : 0;
+}
+
+export function stockLabel(product: Pick<Product, "stockQuantity">): string {
+  if (product.stockQuantity === null) return "รอยืนยันสต็อก";
+  if (product.stockQuantity === 0) return "สินค้าหมด";
+  return `พร้อมส่ง ${product.stockQuantity} ชิ้น`;
+}
+
 export type StoredItem = { productId: string; quantity: number };
 export type CartLine = { product: Product; quantity: number };
 

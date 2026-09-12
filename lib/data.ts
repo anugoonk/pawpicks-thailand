@@ -33,6 +33,9 @@ export const FALLBACK_PRODUCTS: Product[] = [
     searchKeywords: "น้ำพุแมว เครื่องให้น้ำ pet tech",
     active: true,
     sortOrder: 1,
+    details: { dimensions: "", material: "", instructions: "", suitableFor: "", images: [] },
+    stockQuantity: null,
+    lowStockThreshold: 5,
   },
   {
     id: "auto-feeder",
@@ -54,6 +57,9 @@ export const FALLBACK_PRODUCTS: Product[] = [
     searchKeywords: "เครื่องให้อาหารแมว อัตโนมัติ pet tech",
     active: true,
     sortOrder: 2,
+    details: { dimensions: "", material: "", instructions: "", suitableFor: "", images: [] },
+    stockQuantity: null,
+    lowStockThreshold: 5,
   },
   {
     id: "wifi-pet-camera",
@@ -75,6 +81,9 @@ export const FALLBACK_PRODUCTS: Product[] = [
     searchKeywords: "กล้องดูแมว กล้อง pet camera wifi",
     active: true,
     sortOrder: 3,
+    details: { dimensions: "", material: "", instructions: "", suitableFor: "", images: [] },
+    stockQuantity: null,
+    lowStockThreshold: 5,
   },
   {
     id: "ramp-scratcher",
@@ -96,6 +105,9 @@ export const FALLBACK_PRODUCTS: Product[] = [
     searchKeywords: "ที่ลับเล็บแมว ไม้ scratcher",
     active: true,
     sortOrder: 4,
+    details: { dimensions: "", material: "", instructions: "", suitableFor: "", images: [] },
+    stockQuantity: null,
+    lowStockThreshold: 5,
   },
 ];
 

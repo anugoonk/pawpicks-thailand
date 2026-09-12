@@ -6,6 +6,7 @@ import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
 import { formatThb } from "@/lib/format";
 import type { Product } from "@/lib/types";
+import { availableQuantity, stockLabel } from "@/lib/cart";
 
 function haystack(p: Product): string {
   return [
@@ -22,7 +23,7 @@ function haystack(p: Product): string {
 
 export function ProductGrid({ products }: { products: Product[] }) {
   const { query } = useSearch();
-  const { add, setCartOpen } = useCart();
+  const { add, setCartOpen, lines } = useCart();
   const [added, setAdded] = useState<string | null>(null);
   const term = query.trim().toLowerCase();
 
@@ -79,13 +80,15 @@ export function ProductGrid({ products }: { products: Product[] }) {
                 </Link>
               </h3>
               <p>{p.description}</p>
+              <p className="stock-status">{stockLabel(p)}</p>
               <div className="product-actions">
                 <button
                   className="add-to-cart"
                   onClick={() => addToCart(p.id)}
                   aria-label={`เพิ่ม ${p.name} ลงตะกร้า`}
+                  disabled={(lines.find((line) => line.product.id === p.id)?.quantity ?? 0) >= availableQuantity(p)}
                 >
-                  {added === p.id
+                  {availableQuantity(p) === 0 ? stockLabel(p) : added === p.id
                     ? "เพิ่มแล้ว ✓"
                     : `เพิ่มลงตะกร้า · ${formatThb(p.priceThb)}`}
                 </button>

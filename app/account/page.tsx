@@ -1,3 +1,5 @@
+import { OrderTracking } from "@/components/order-tracking";
+import { STATUS_TH } from "@/lib/shipping";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignInForm } from "@/components/sign-in-form";
@@ -13,13 +15,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const STATUS_TH: Record<string, string> = {
-  pending: "รอชำระเงิน",
-  paid: "ชำระแล้ว",
-  fulfilled: "จัดส่งแล้ว",
-  cancelled: "ยกเลิก",
-  refunded: "คืนเงินแล้ว",
-};
 
 const dateTh = new Intl.DateTimeFormat("th-TH", {
   dateStyle: "medium",
@@ -124,6 +119,7 @@ export default async function AccountPage({
                     {formatShippingAddress(o.shippingAddress) ?? ""}
                   </p>
                 ) : null}
+                <OrderTracking {...o} />
                 <p className="order-ref">เลขอ้างอิง: {o.id.slice(0, 8).toUpperCase()}</p>
               </li>
             ))}

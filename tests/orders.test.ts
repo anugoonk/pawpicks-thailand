@@ -25,6 +25,9 @@ describe("mapOrderRow", () => {
       currency: "thb",
       createdAt: "2026-09-11T00:00:00.000Z",
       shippingAddress: null,
+      shippingCarrier: null,
+      trackingNumber: null,
+      shippedAt: null,
       items: [{ name: "น้ำพุแมวอัตโนมัติ", quantity: 2, unitPriceThb: 890 }],
     });
   });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import type Stripe from "stripe";
 import { getSiteUrl, hasStripe, hasSupabase, serverEnv } from "@/lib/env";
 import { getProductsByIds } from "@/lib/products";
@@ -21,7 +22,7 @@ const RATE_WINDOW_MS = 60_000;
  * client-supplied amount.
  */
 export async function POST(request: Request) {
-  if (!hasStripe()) {
+  if (!hasStripe() || !hasSupabase()) {
     return NextResponse.json(
       { error: "payments_unavailable" },
       { status: 503 },
@@ -77,6 +78,9 @@ export async function POST(request: Request) {
         { status: 422 },
       );
     }
+    if (product.stockQuantity === null || item.quantity > product.stockQuantity) {
+      return NextResponse.json({ error: "insufficient_stock", productId: item.productId }, { status: 409 });
+    }
     subtotalThb += product.priceThb * item.quantity;
     lineItems.push({
       quantity: item.quantity,
@@ -102,12 +106,15 @@ export async function POST(request: Request) {
   // guest checkout stays fully supported.
   const customer = await currentCustomer();
 
-  const session = await stripe.checkout.sessions.create({
+  let session: Stripe.Checkout.Session;
+  try {
+  session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card", "promptpay"],
     line_items: lineItems,
     currency: "thb",
     locale: "th",
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     ...(customer?.id ? { client_reference_id: customer.id } : {}),
     ...(customer?.email ? { customer_email: customer.email } : {}),
     // Physical goods — collect where (and how to reach) the buyer for delivery.
@@ -130,12 +137,36 @@ export async function POST(request: Request) {
     metadata: {
       subtotal_thb: String(subtotalThb),
       shipping_thb: String(shippingThb),
+      inventory_required: "true",
       ...(customer?.id ? { user_id: customer.id } : {}),
     },
   });
+  } catch {
+    return NextResponse.json({ error: "payments_unavailable" }, { status: 503 });
+  }
+
+  // Only expose the payment URL after every item is reserved atomically.
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const { error } = await createAdminClient().rpc("reserve_stock", {
+      p_session_id: session.id,
+      p_items: items,
+      p_expires_at: new Date(session.expires_at * 1000).toISOString(),
+    });
+    if (error) throw error;
+  } catch (error) {
+    // Expiring first makes it safe for the verified expired webhook to release
+    // even if the reservation committed but its response was lost.
+    try { await stripe.checkout.sessions.expire(session.id); }
+    catch { console.error("checkout: session expiration pending", session.id); }
+    const conflict = typeof error === "object" && error !== null && "message" in error
+      && String(error.message).includes("insufficient_stock");
+    return NextResponse.json({ error: conflict ? "insufficient_stock" : "inventory_unavailable" }, { status: conflict ? 409 : 503 });
+  }
 
   // NOTE: order rows are created/confirmed from the verified webhook
   // (app/api/stripe/webhook), never here — this response can be lost.
+  revalidatePath("/"); revalidatePath("/products/[slug]", "page");
   return NextResponse.json({ id: session.id, url: session.url });
 }
 

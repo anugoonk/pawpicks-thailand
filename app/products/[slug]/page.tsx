@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
+import { ProductGallery } from "@/components/product-gallery";
+import { stockLabel } from "@/lib/cart";
 import { ProductDetailActions } from "@/components/product-detail-actions";
 import { ProductGrid } from "@/components/product-grid";
 import { SearchProvider } from "@/components/search-context";
@@ -69,14 +71,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <main id="top">
           <section className="product-detail">
             <div className="product-detail-media">
-              <div className={`product-detail-image ${product.imageCrop ?? ""}`.trim()}>
-                <img src={product.image} alt={product.name} />
-                {product.badge ? (
-                  <span className={`badge${product.badgeDark ? " dark" : ""}`}>
-                    {product.badge}
-                  </span>
-                ) : null}
-              </div>
+              <ProductGallery key={product.id} product={product} />
               {product.companionImage ? (
                 <div className="product-detail-companion">
                   <img
@@ -97,20 +92,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <h1>{product.name}</h1>
               <p className="product-detail-description">{product.description}</p>
               <p className="product-detail-price">{formatThb(product.priceThb)}</p>
+              <p className="stock-status">{stockLabel(product)}</p>
               <ProductDetailActions product={product} />
               <dl className="product-detail-notes">
-                <div>
-                  <dt>ชำระเงิน</dt>
-                  <dd>ผ่าน Stripe Test Mode จนกว่าระบบรับเงินจริงจะพร้อมใช้งาน</dd>
-                </div>
-                <div>
-                  <dt>จัดส่ง</dt>
-                  <dd>ค่าจัดส่งคำนวณฝั่ง server และเก็บที่อยู่ผ่าน checkout</dd>
-                </div>
-                <div>
-                  <dt>ช่องทางเสริม</dt>
-                  <dd>Shopee เป็นทางเลือกสำรอง ไม่ใช่ CTA หลักของร้าน</dd>
-                </div>
+                <div><dt>ขนาด</dt><dd>{product.details.dimensions || "กำลังตรวจสอบข้อมูล"}</dd></div>
+                <div><dt>วัสดุ</dt><dd>{product.details.material || "กำลังตรวจสอบข้อมูล"}</dd></div>
+                <div><dt>เหมาะกับ</dt><dd>{product.details.suitableFor || "กำลังตรวจสอบข้อมูล"}</dd></div>
+                <div><dt>วิธีใช้</dt><dd className="preserve-lines">{product.details.instructions || "กำลังตรวจสอบข้อมูล"}</dd></div>
+                <div><dt>จัดส่ง</dt><dd>ค่าจัดส่ง {formatThb(SHIPPING_FLAT_RATE)} · ส่งฟรีเมื่อซื้อครบ {formatThb(FREE_SHIPPING_THRESHOLD)}</dd></div>
               </dl>
             </div>
           </section>
