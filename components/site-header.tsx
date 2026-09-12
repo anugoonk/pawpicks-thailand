@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { AccountLink } from "@/components/account-link";
 import { CartButton } from "@/components/cart-button";
@@ -13,10 +14,12 @@ const NAV_LINKS = [
 ];
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const { query, setQuery, searchOpen, setSearchOpen } = useSearch();
   const [menuOpen, setMenuOpen] = useState(false);
   const jump = useJumpToProducts();
   const inputRef = useRef<HTMLInputElement>(null);
+  const sectionPrefix = pathname === "/" ? "" : "/";
 
   function toggleSearch() {
     const next = !searchOpen;
@@ -46,7 +49,11 @@ export function SiteHeader() {
           className={menuOpen ? "open" : undefined}
         >
           {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
+            <a
+              key={link.href}
+              href={`${sectionPrefix}${link.href}`}
+              onClick={() => setMenuOpen(false)}
+            >
               {link.label}
             </a>
           ))}

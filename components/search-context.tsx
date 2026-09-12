@@ -42,6 +42,11 @@ export function useSearch(): SearchContextValue {
 /** Matches the original filterProducts(): jump to #new after setting a query. */
 export function useJumpToProducts() {
   return useCallback(() => {
-    document.getElementById("new")?.scrollIntoView();
+    const target = document.getElementById("new");
+    if (target) {
+      target.scrollIntoView();
+      return;
+    }
+    window.location.href = "/#new";
   }, []);
 }

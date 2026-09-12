@@ -26,4 +26,9 @@ describe("static fallback content", () => {
       expect(p.shopeeUrl).toMatch(/^https:\/\/shopee\.co\.th\//);
     });
   });
+
+  it("has unique product slugs for detail pages", () => {
+    const slugs = FALLBACK_PRODUCTS.map((p) => p.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
+  });
 });
