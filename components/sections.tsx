@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { QueryLink } from "@/components/query-link";
 import { CAT_TEAM, COLLECTIONS } from "@/lib/data";
 
@@ -72,6 +73,23 @@ export function NewSectionHeading() {
       </div>
       <a href="#collections">ดูทุกหมวด →</a>
     </div>
+  );
+}
+
+export function Top10Promo() {
+  return (
+    <section className="section">
+      <div className="top10-promo">
+        <div>
+          <p className="eyebrow">PAWPICKS TOP 10</p>
+          <h2>บทความจัดอันดับของใช้แมว 20 หัวข้อ</h2>
+          <p>คัดของใช้แมวตามหมวดหมู่ จัดอันดับจากการใช้งานจริง อัปเดตเรื่อยๆ</p>
+        </div>
+        <Link className="primary-button" href="/top-10">
+          ดูทุกอันดับ <span>→</span>
+        </Link>
+      </div>
+    </section>
   );
 }
 

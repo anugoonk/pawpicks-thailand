@@ -11,6 +11,7 @@ import {
   NewSectionHeading,
   PromoBar,
   SiteFooter,
+  Top10Promo,
   TrustRow,
 } from "@/components/sections";
 import { serverEnv } from "@/lib/env";
@@ -41,6 +42,7 @@ export default async function HomePage() {
             <NewSectionHeading />
             <ProductGrid products={products} />
           </section>
+          <Top10Promo />
           <Collections />
           <About />
           <CatTeam />

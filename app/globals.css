@@ -170,3 +170,10 @@ a:focus-visible,button:focus-visible{outline:3px solid #087858;outline-offset:4p
 .top10-item a{font-weight:700;font-size:.85rem;border-bottom:2px solid var(--yellow)}
 @media(max-width:900px){.top10-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.top10-grid{grid-template-columns:1fr}.top10-item{grid-template-columns:36px 1fr}.top10-item-rank{width:36px;height:36px;font-size:.85rem}}
+
+.top10-promo{background:var(--ink);color:#fff;border-radius:28px;padding:38px 48px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.top10-promo .eyebrow{color:var(--yellow)}
+.top10-promo h2{margin:8px 0;font-size:clamp(1.4rem,2.6vw,2rem);letter-spacing:-.03em}
+.top10-promo p{margin:0;color:#d9d5df;max-width:440px}
+.top10-promo .primary-button{background:var(--yellow);color:#453300;box-shadow:none;white-space:nowrap}
+@media(max-width:560px){.top10-promo{padding:28px 24px}.top10-promo .primary-button{width:100%;justify-content:center}}
