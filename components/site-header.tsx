@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 import { AccountLink } from "@/components/account-link";
@@ -57,6 +58,9 @@ export function SiteHeader() {
               {link.label}
             </a>
           ))}
+          <Link href="/top-10" onClick={() => setMenuOpen(false)}>
+            Top 10
+          </Link>
         </nav>
         <div className="header-actions">
           <button

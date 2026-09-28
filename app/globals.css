@@ -143,3 +143,30 @@ a:focus-visible,button:focus-visible{outline:3px solid #087858;outline-offset:4p
 .admin-status-form{display:flex;align-items:center;gap:8px}
 .admin-status-form select{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:700 .75rem/1.4 var(--font-anuphan),"Anuphan",sans-serif;background:#fff;cursor:pointer}
 .admin-status-save{border:0;background:var(--ink);color:#fff;cursor:pointer;padding:6px 12px;border-radius:999px;font-weight:700;font-size:.75rem}
+
+/* ---------------------------------------------------------------------------
+   Top 10 articles (/top-10, /top-10/[slug]).
+   --------------------------------------------------------------------------- */
+.top10-landing-intro{color:var(--muted);max-width:640px;margin:-8px 0 28px}
+.top10-filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.top10-filter-chip{border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;padding:8px 16px;border-radius:999px;font-weight:700;font-size:.85rem;transition:.18s ease}
+.top10-filter-chip:hover{border-color:#edca4c}
+.top10-filter-chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.top10-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.top10-card{position:relative;display:block;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;transition:.22s ease}
+.top10-card:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
+.top10-card h3{margin:8px 0 8px;font-size:1.05rem;line-height:1.35}
+.top10-card p{margin:0;color:var(--muted);font-size:.86rem}
+.top10-badge{display:inline-block;margin-bottom:6px;background:var(--yellow-soft);color:#8a6500;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:700}
+.top10-badge-live{background:var(--mint);color:#fff}
+.top10-article{max-width:800px}
+.top10-article-excerpt{color:var(--muted);font-size:1.05rem;max-width:620px;margin:0 0 28px}
+.top10-coming-soon{background:#fff;border:1px dashed var(--line);border-radius:18px;padding:40px;text-align:center;color:var(--muted)}
+.top10-item-list{list-style:none;margin:0;padding:0;display:grid;gap:16px}
+.top10-item{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px}
+.top10-item-rank{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--yellow);font-weight:800}
+.top10-item h3{margin:0 0 6px;font-size:1rem}
+.top10-item p{margin:0 0 8px;color:var(--muted);font-size:.9rem}
+.top10-item a{font-weight:700;font-size:.85rem;border-bottom:2px solid var(--yellow)}
+@media(max-width:900px){.top10-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.top10-grid{grid-template-columns:1fr}.top10-item{grid-template-columns:36px 1fr}.top10-item-rank{width:36px;height:36px;font-size:.85rem}}

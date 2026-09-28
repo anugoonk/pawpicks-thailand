@@ -81,3 +81,57 @@ export const orderStatusSchema = z.enum([
   "refunded",
 ]);
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Top 10 articles                                                     */
+/* ------------------------------------------------------------------ */
+
+export const articleStatusSchema = z.enum(["draft", "coming_soon", "published"]);
+export type ArticleStatus = z.infer<typeof articleStatusSchema>;
+
+/** A single ranked product entry inside a published Top 10 article. */
+export const top10ItemSchema = z.object({
+  rank: z.number().int().min(1).max(10),
+  productName: z.string().min(1),
+  summary: z.string().min(1),
+  shopeeUrl: z.string().url().optional(),
+  image: z.string().optional(),
+});
+export type Top10Item = z.infer<typeof top10ItemSchema>;
+
+/**
+ * A PawPicks Top 10 article. `published` articles are the only ones that may
+ * carry real ranked items — everything else must stay empty so the site
+ * never shows fabricated products, prices, or reviews. Enforced below: a
+ * `published` article without exactly 10 verified items fails to parse,
+ * which fails the build rather than shipping bad content.
+ */
+export const top10ArticleSchema = z
+  .object({
+    slug: z.string().min(1),
+    title: z.string().min(1),
+    category: z.string().min(1),
+    excerpt: z.string().min(1),
+    status: articleStatusSchema.default("coming_soon"),
+    items: z.array(top10ItemSchema).max(10).default([]),
+    verifiedAt: z.string().optional(),
+  })
+  .superRefine((article, ctx) => {
+    if (article.status === "published") {
+      if (article.items.length !== 10) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["items"],
+          message: `Published article "${article.slug}" must have exactly 10 verified items (has ${article.items.length}).`,
+        });
+      }
+      if (!article.verifiedAt) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["verifiedAt"],
+          message: `Published article "${article.slug}" must have verifiedAt set.`,
+        });
+      }
+    }
+  });
+export type Top10Article = z.infer<typeof top10ArticleSchema>;
