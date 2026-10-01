@@ -1,0 +1,2 @@
+sku,slug,name,brand,model,category,short_description,full_description,price_thb,compare_at_price_thb,stock_quantity,status,image_urls,dimensions,materials,key_features,usage_instructions,warranty,shipping_weight_g,shipping_fee_thb,return_info,seo_title,seo_description
+# status: draft | active | out_of_stock | archived. Leave price/stock BLANK if not verified — do not estimate. Owner fills; nothing here is real data.

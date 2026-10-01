@@ -4,8 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
+import { STORE_ENABLED } from "@/lib/store";
 import { ProductGallery } from "@/components/product-gallery";
-import { stockLabel } from "@/lib/cart";
 import { ProductDetailActions } from "@/components/product-detail-actions";
 import { ProductGrid } from "@/components/product-grid";
 import { SearchProvider } from "@/components/search-context";
@@ -91,15 +91,20 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <p className="eyebrow">{product.category}</p>
               <h1>{product.name}</h1>
               <p className="product-detail-description">{product.description}</p>
-              <p className="product-detail-price">{formatThb(product.priceThb)}</p>
-              <p className="stock-status">{stockLabel(product)}</p>
+              <p className="product-detail-price">
+                {STORE_ENABLED ? "" : "ราคาอ้างอิง "}{formatThb(product.priceThb)}
+              </p>
+              {STORE_ENABLED ? null : (
+                <p className="affiliate-disclosure">
+                  กำลังเตรียมเปิดจำหน่ายผ่าน PawPicks — ระหว่างนี้สามารถดูสินค้าผ่านช่องทางอื่นได้ (ลิงก์พันธมิตร)
+                </p>
+              )}
               <ProductDetailActions product={product} />
               <dl className="product-detail-notes">
                 <div><dt>ขนาด</dt><dd>{product.details.dimensions || "กำลังตรวจสอบข้อมูล"}</dd></div>
                 <div><dt>วัสดุ</dt><dd>{product.details.material || "กำลังตรวจสอบข้อมูล"}</dd></div>
                 <div><dt>เหมาะกับ</dt><dd>{product.details.suitableFor || "กำลังตรวจสอบข้อมูล"}</dd></div>
                 <div><dt>วิธีใช้</dt><dd className="preserve-lines">{product.details.instructions || "กำลังตรวจสอบข้อมูล"}</dd></div>
-                <div><dt>จัดส่ง</dt><dd>ค่าจัดส่ง {formatThb(SHIPPING_FLAT_RATE)} · ส่งฟรีเมื่อซื้อครบ {formatThb(FREE_SHIPPING_THRESHOLD)}</dd></div>
               </dl>
             </div>
           </section>
@@ -117,7 +122,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           ) : null}
         </main>
         <SiteFooter />
-        <CartPanel />
+        {STORE_ENABLED ? <CartPanel /> : null}
       </SearchProvider>
     </CartProvider>
   );

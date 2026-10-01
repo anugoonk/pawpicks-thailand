@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { NewSectionFilterState } from "@/components/new-section-filter-state";
 import { QueryLink } from "@/components/query-link";
 import { CAT_TEAM, COLLECTIONS } from "@/lib/data";
+import { getTop10Articles } from "@/lib/top10";
 
 /* All plain <img>: the original design relies on CSS object-fit / transform
    crops that next/image would override. */
@@ -42,8 +44,8 @@ export function TrustRow() {
       <article>
         <span>✓</span>
         <div>
-          <strong>คัดจากการใช้งาน</strong>
-          <small>เน้นประโยชน์จริง ไม่ขายเกินจริง</small>
+          <strong>คัดเลือกอย่างรอบด้าน</strong>
+          <small>พิจารณาคุณสมบัติ ราคา ความปลอดภัย และการรับประกัน</small>
         </div>
       </article>
       <article>
@@ -56,8 +58,8 @@ export function TrustRow() {
       <article>
         <span>⌁</span>
         <div>
-          <strong>ซื้อผ่านร้านที่คุณเลือก</strong>
-          <small>กดดูราคาและรีวิวล่าสุดบน Shopee</small>
+          <strong>กำลังเตรียมเปิดจำหน่ายผ่าน PawPicks</strong>
+          <small>พร้อมข้อมูลสินค้าและบริการที่ชัดเจน</small>
         </div>
       </article>
     </section>
@@ -65,25 +67,18 @@ export function TrustRow() {
 }
 
 export function NewSectionHeading() {
-  return (
-    <div className="section-heading">
-      <div>
-        <p className="eyebrow">CURATED THIS WEEK</p>
-        <h2>สินค้าแนะนำประจำสัปดาห์</h2>
-      </div>
-      <a href="#collections">ดูทุกหมวด →</a>
-    </div>
-  );
+  return <NewSectionFilterState />;
 }
 
 export function Top10Promo() {
+  const articleCount = getTop10Articles().length;
   return (
     <section className="section">
       <div className="top10-promo">
         <div>
           <p className="eyebrow">PAWPICKS TOP 10</p>
-          <h2>บทความจัดอันดับของใช้แมว 20 หัวข้อ</h2>
-          <p>คัดของใช้แมวตามหมวดหมู่ จัดอันดับจากการใช้งานจริง อัปเดตเรื่อยๆ</p>
+          <h2>บทความจัดอันดับของใช้แมว {articleCount} หัวข้อ</h2>
+          <p>คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้ หัวข้อที่ยังไม่เผยแพร่จะระบุว่า “เร็วๆ นี้”</p>
         </div>
         <Link className="primary-button" href="/top-10">
           ดูทุกอันดับ <span>→</span>
@@ -104,7 +99,7 @@ export function Collections() {
       </div>
       <div className="collection-grid">
         {COLLECTIONS.map((c) => (
-          <QueryLink key={c.id} query={c.query}>
+          <QueryLink key={c.id} query={c.query} label={c.title}>
             <span className="collection-cats">
               {c.catImages.map((img) => (
                 <img key={img.src} src={img.src} alt={img.alt} loading="lazy" />

@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
+import { STORE_ENABLED } from "@/lib/store";
 import { SearchProvider } from "@/components/search-context";
 import { PromoBar, SiteFooter } from "@/components/sections";
 import { SiteHeader } from "@/components/site-header";
 import { serverEnv } from "@/lib/env";
 import { getProducts } from "@/lib/products";
 import { getTop10ArticleBySlug, getTop10Articles } from "@/lib/top10";
+import { shopeeCtaLabel } from "@/lib/affiliate";
 
 type Top10ArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -75,8 +77,8 @@ export default async function Top10ArticlePage({ params }: Top10ArticlePageProps
                       <h3>{item.productName}</h3>
                       <p>{item.summary}</p>
                       {item.shopeeUrl ? (
-                        <a href={item.shopeeUrl} target="_blank" rel="noopener noreferrer nofollow">
-                          ดูบน Shopee →
+                        <a href={item.shopeeUrl} target="_blank" rel="sponsored noopener nofollow">
+                          {shopeeCtaLabel(item.shopeeUrl)}
                         </a>
                       ) : null}
                     </div>
@@ -91,7 +93,7 @@ export default async function Top10ArticlePage({ params }: Top10ArticlePageProps
           </section>
         </main>
         <SiteFooter />
-        <CartPanel />
+        {STORE_ENABLED ? <CartPanel /> : null}
       </SearchProvider>
     </CartProvider>
   );

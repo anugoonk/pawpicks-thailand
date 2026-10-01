@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
+import { STORE_ENABLED } from "@/lib/store";
 import { SearchProvider } from "@/components/search-context";
 import { PromoBar, SiteFooter } from "@/components/sections";
 import { SiteHeader } from "@/components/site-header";
@@ -11,10 +12,11 @@ import { getTop10Articles, getTop10Categories } from "@/lib/top10";
 
 export const revalidate = 300;
 
+const ARTICLE_COUNT = getTop10Articles().length;
+
 export const metadata: Metadata = {
   title: "PawPicks Top 10",
-  description:
-    "รวมบทความจัดอันดับของใช้แมวยอดนิยม 20 หัวข้อจาก PawPicks Thailand คัดจากการใช้งานจริง",
+  description: `รวมบทความจัดอันดับของใช้แมว ${ARTICLE_COUNT} หัวข้อจาก PawPicks Thailand คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้ หัวข้อที่ยังไม่เผยแพร่จะระบุว่า "เร็วๆ นี้"`,
 };
 
 export default async function Top10LandingPage() {
@@ -48,7 +50,7 @@ export default async function Top10LandingPage() {
           </section>
         </main>
         <SiteFooter />
-        <CartPanel />
+        {STORE_ENABLED ? <CartPanel /> : null}
       </SearchProvider>
     </CartProvider>
   );

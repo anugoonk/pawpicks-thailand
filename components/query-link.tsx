@@ -9,18 +9,21 @@ import { useSearch, useJumpToProducts } from "@/components/search-context";
  */
 export function QueryLink({
   query,
+  label,
   className,
   id,
   ariaLabel,
   children,
 }: {
   query: string;
+  /** Display label for the resulting filter heading (e.g. a collection title). */
+  label?: string;
   className?: string;
   id?: string;
   ariaLabel?: string;
   children: ReactNode;
 }) {
-  const { setQuery } = useSearch();
+  const { setQuery, setActiveLabel } = useSearch();
   const jump = useJumpToProducts();
 
   return (
@@ -32,6 +35,7 @@ export function QueryLink({
       data-query={query}
       onClick={() => {
         setQuery(query);
+        setActiveLabel(label ?? null);
         // Let the hash navigation happen, then align to the section.
         requestAnimationFrame(jump);
       }}

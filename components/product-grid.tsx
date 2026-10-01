@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
+import { shopeeCtaLabel } from "@/lib/affiliate";
+import { availableQuantity, canPurchase, stockLabel } from "@/lib/cart";
+import { STORE_ENABLED } from "@/lib/store";
 import { formatThb } from "@/lib/format";
 import type { Product } from "@/lib/types";
-import { availableQuantity, stockLabel } from "@/lib/cart";
 
 function haystack(p: Product): string {
   return [
@@ -22,8 +24,8 @@ function haystack(p: Product): string {
 }
 
 export function ProductGrid({ products }: { products: Product[] }) {
-  const { query } = useSearch();
-  const { add, setCartOpen, lines } = useCart();
+  const { query, setQuery, setActiveLabel } = useSearch();
+  const { add, lines } = useCart();
   const [added, setAdded] = useState<string | null>(null);
   const term = query.trim().toLowerCase();
 
@@ -38,6 +40,11 @@ export function ProductGrid({ products }: { products: Product[] }) {
     [products, term],
   );
   const shown = matches.filter(Boolean).length;
+
+  function clearFilter() {
+    setQuery("");
+    setActiveLabel(null);
+  }
 
   return (
     <>
@@ -80,46 +87,52 @@ export function ProductGrid({ products }: { products: Product[] }) {
                 </Link>
               </h3>
               <p>{p.description}</p>
-              <p className="stock-status">{stockLabel(p)}</p>
               <div className="product-actions">
-                <button
-                  className="add-to-cart"
-                  onClick={() => addToCart(p.id)}
-                  aria-label={`เพิ่ม ${p.name} ลงตะกร้า`}
-                  disabled={(lines.find((line) => line.product.id === p.id)?.quantity ?? 0) >= availableQuantity(p)}
+                {STORE_ENABLED ? (
+                  <>
+                    <p className="stock-status">{stockLabel(p)}</p>
+                    {canPurchase(p) ? (
+                      <button
+                        className="add-to-cart"
+                        onClick={() => addToCart(p.id)}
+                        aria-label={`เพิ่ม ${p.name} ลงตะกร้า`}
+                        disabled={(lines.find((line) => line.product.id === p.id)?.quantity ?? 0) >= availableQuantity(p)}
+                      >
+                        {added === p.id ? "เพิ่มแล้ว ✓" : `เพิ่มลงตะกร้า · ${formatThb(p.priceThb)}`}
+                      </button>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="product-reference-price">
+                    ราคาอ้างอิง {formatThb(p.priceThb)}
+                  </p>
+                )}
+                {/* Marketplace links are a secondary option, never the main CTA. */}
+                <a
+                  href={p.shopeeUrl}
+                  target="_blank"
+                  rel="sponsored noopener"
+                  className="shopee-link"
                 >
-                  {availableQuantity(p) === 0 ? stockLabel(p) : added === p.id
-                    ? "เพิ่มแล้ว ✓"
-                    : `เพิ่มลงตะกร้า · ${formatThb(p.priceThb)}`}
-                </button>
-                <div className="product-links">
-                  <button
-                    className="link-button"
-                    onClick={() => setCartOpen(true)}
-                  >
-                    ดูตะกร้า
-                  </button>
-                  <a
-                    href={p.shopeeUrl}
-                    target="_blank"
-                    rel="sponsored noopener"
-                    className="shopee-link"
-                  >
-                    ดูบน Shopee ↗
-                  </a>
-                </div>
+                  {shopeeCtaLabel(p.shopeeUrl)}
+                </a>
               </div>
             </div>
           </article>
         ))}
       </div>
-      <p
+      <div
         className="empty-state"
         id="emptyState"
         style={{ display: shown ? "none" : "block" }}
       >
-        ยังไม่พบสินค้าที่ค้นหา ลองใช้คำว่า “กล้อง”, “น้ำพุ” หรือ “อาหาร”
-      </p>
+        <p>
+          ยังไม่มีสินค้าที่ตรงกับ “{query.trim()}” ในขณะนี้ — เร็วๆ นี้จะทยอยเพิ่มสินค้า
+        </p>
+        <button type="button" className="link-button" onClick={clearFilter}>
+          ดูสินค้าทั้งหมด
+        </button>
+      </div>
     </>
   );
 }

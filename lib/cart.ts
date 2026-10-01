@@ -7,6 +7,27 @@ export function availableQuantity(product: Pick<Product, "active" | "stockQuanti
   return product.active ? Math.min(MAX_QTY, product.stockQuantity ?? 0) : 0;
 }
 
+export type ProductStatus = "draft" | "active" | "out_of_stock" | "archived";
+
+/**
+ * Derived sale status. Active with unconfirmed stock (null) stays "draft":
+ * a product is never presented as sellable without a confirmed count.
+ */
+export function productStatus(
+  product: Pick<Product, "active" | "stockQuantity">,
+): ProductStatus {
+  if (!product.active) return "archived";
+  if (product.stockQuantity === null) return "draft";
+  return product.stockQuantity > 0 ? "active" : "out_of_stock";
+}
+
+/** The add-to-cart button is shown only for active products with stock > 0. */
+export function canPurchase(
+  product: Pick<Product, "active" | "stockQuantity">,
+): boolean {
+  return productStatus(product) === "active";
+}
+
 export function stockLabel(product: Pick<Product, "stockQuantity">): string {
   if (product.stockQuantity === null) return "รอยืนยันสต็อก";
   if (product.stockQuantity === 0) return "สินค้าหมด";

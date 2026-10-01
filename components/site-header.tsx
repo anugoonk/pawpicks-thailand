@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { AccountLink } from "@/components/account-link";
 import { CartButton } from "@/components/cart-button";
 import { useSearch, useJumpToProducts } from "@/components/search-context";
+import { STORE_ENABLED } from "@/lib/store";
 
 const NAV_LINKS = [
   { href: "#new", label: "สินค้าแนะนำ" },
@@ -16,7 +17,8 @@ const NAV_LINKS = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { query, setQuery, searchOpen, setSearchOpen } = useSearch();
+  const router = useRouter();
+  const { query, setQuery, setActiveLabel, searchOpen, setSearchOpen } = useSearch();
   const [menuOpen, setMenuOpen] = useState(false);
   const jump = useJumpToProducts();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,8 +30,19 @@ export function SiteHeader() {
     if (next) requestAnimationFrame(() => inputRef.current?.focus());
   }
 
+  // The header search box must search the whole catalogue, not just the
+  // handful of products the current page happens to render (e.g. a product
+  // detail page only shows 4 "related" items). Searching from anywhere but
+  // the homepage hands the query to the homepage, which always renders the
+  // full product list.
   function runSearch() {
-    jump();
+    const trimmed = query.trim();
+    setActiveLabel(null);
+    if (pathname === "/") {
+      jump();
+      return;
+    }
+    router.push(`/?q=${encodeURIComponent(trimmed)}#new`);
   }
 
   return (
@@ -72,8 +85,12 @@ export function SiteHeader() {
           >
             ⌕
           </button>
-          <CartButton />
-          <AccountLink />
+          {STORE_ENABLED ? (
+            <>
+              <CartButton />
+              <AccountLink />
+            </>
+          ) : null}
           <button
             className="menu-button"
             id="menuToggle"

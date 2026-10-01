@@ -26,12 +26,12 @@ export const metadata: Metadata = {
     template: "%s · PawPicks Thailand",
   },
   description:
-    "PawPicks Thailand คัดของใช้แมวและ Pet Tech ที่น่าใช้ พร้อมลิงก์ช้อปบน Shopee",
+    "PawPicks Thailand คัดเลือกของใช้แมวและ Pet Tech พร้อมข้อมูลสินค้าและบริการที่ชัดเจน",
   applicationName: "PawPicks Thailand",
   openGraph: {
     title: "PawPicks Thailand — ของดีที่แมวเลือก",
     description:
-      "ของใช้แมวและ Pet Tech ในที่เดียว คัดจากการใช้งานจริง เพื่อชีวิตที่ดีขึ้นของแมวและคนที่รักแมว",
+      "ของใช้แมวและ Pet Tech ในที่เดียว คัดเลือกจากคุณสมบัติ ราคา และความปลอดภัย เพื่อชีวิตที่ดีขึ้นของแมวและคนที่รักแมว",
     url: siteUrl,
     siteName: "PawPicks Thailand",
     locale: "th_TH",

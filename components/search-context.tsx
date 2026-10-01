@@ -12,6 +12,11 @@ import {
 type SearchContextValue = {
   query: string;
   setQuery: (value: string) => void;
+  /** Human-readable label for the active filter (a collection title, a cat
+   * name, …), shown in headings instead of the raw search keyword. Cleared
+   * whenever the query is cleared. */
+  activeLabel: string | null;
+  setActiveLabel: (value: string | null) => void;
   /** Open state of the header search panel. */
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
@@ -19,13 +24,20 @@ type SearchContextValue = {
 
 const SearchContext = createContext<SearchContextValue | null>(null);
 
-export function SearchProvider({ children }: { children: ReactNode }) {
-  const [query, setQuery] = useState("");
+export function SearchProvider({
+  children,
+  initialQuery = "",
+}: {
+  children: ReactNode;
+  initialQuery?: string;
+}) {
+  const [query, setQuery] = useState(initialQuery);
+  const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const value = useMemo<SearchContextValue>(
-    () => ({ query, setQuery, searchOpen, setSearchOpen }),
-    [query, searchOpen],
+    () => ({ query, setQuery, activeLabel, setActiveLabel, searchOpen, setSearchOpen }),
+    [query, activeLabel, searchOpen],
   );
 
   return (
