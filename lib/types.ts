@@ -86,8 +86,19 @@ export type OrderStatus = z.infer<typeof orderStatusSchema>;
 /* Top 10 articles                                                     */
 /* ------------------------------------------------------------------ */
 
-export const articleStatusSchema = z.enum(["draft", "coming_soon", "published"]);
+export const articleStatusSchema = z.enum(["draft", "coming_soon", "published", "archived"]);
 export type ArticleStatus = z.infer<typeof articleStatusSchema>;
+
+/** PawPicks Score inputs, each 0–100. Weights live in lib/top10-score.ts. */
+export const top10ScoresSchema = z.object({
+  quality: z.number().min(0).max(100),
+  features: z.number().min(0).max(100),
+  value: z.number().min(0).max(100),
+  reviews: z.number().min(0).max(100),
+  storeTrust: z.number().min(0).max(100),
+  warranty: z.number().min(0).max(100),
+});
+export type Top10Scores = z.infer<typeof top10ScoresSchema>;
 
 /** A single ranked product entry inside a published Top 10 article. */
 export const top10ItemSchema = z.object({
@@ -96,23 +107,45 @@ export const top10ItemSchema = z.object({
   summary: z.string().min(1),
   shopeeUrl: z.string().url().optional(),
   image: z.string().optional(),
+  /** Slug of a PawPicks product page (/products/[slug]) when we sell it. */
+  productSlug: z.string().optional(),
+  scores: top10ScoresSchema.optional(),
+  pros: z.array(z.string()).default([]),
+  considerations: z.array(z.string()).default([]),
+  suitableFor: z.string().optional(),
+  /** Free text, e.g. "ประมาณ 1,500–2,000 บาท (ตรวจเมื่อ 2026-10-01)". Verified only. */
+  priceNote: z.string().optional(),
+  warranty: z.string().optional(),
 });
 export type Top10Item = z.infer<typeof top10ItemSchema>;
 
+export const top10FaqSchema = z.object({ question: z.string().min(1), answer: z.string().min(1) });
+
 /**
- * A PawPicks Top 10 article. `published` articles are the only ones that may
- * carry real ranked items — everything else must stay empty so the site
- * never shows fabricated products, prices, or reviews. Enforced below: a
- * `published` article without exactly 10 verified items fails to parse,
- * which fails the build rather than shipping bad content.
+ * A PawPicks Top 10 article. Only `published` articles may carry real ranked
+ * items — everything else stays empty so the site never shows fabricated
+ * products, prices, or reviews. A `published` article without exactly 10
+ * verified, scored items fails to parse, which fails the build.
+ *
+ * Visibility: published = public + sitemap; coming_soon = card only (page is
+ * 404 in production); draft = hidden everywhere in production; archived = gone.
+ * Non-production (preview/dev) can open coming_soon/draft pages, noindex.
  */
 export const top10ArticleSchema = z
   .object({
-    slug: z.string().min(1),
+    slug: z.string().min(1).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
     title: z.string().min(1),
     category: z.string().min(1),
     excerpt: z.string().min(1),
     status: articleStatusSchema.default("coming_soon"),
+    coverImage: z.string().optional(),
+    /** ISO date (YYYY-MM-DD) of the last content change. */
+    updatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    publishedAt: z.string().optional(),
+    editor: z.string().optional(),
+    quickSummary: z.string().optional(),
+    howToChoose: z.array(z.string()).default([]),
+    faq: z.array(top10FaqSchema).default([]),
     items: z.array(top10ItemSchema).max(10).default([]),
     verifiedAt: z.string().optional(),
   })
@@ -125,6 +158,13 @@ export const top10ArticleSchema = z
           message: `Published article "${article.slug}" must have exactly 10 verified items (has ${article.items.length}).`,
         });
       }
+      if (article.items.some((i) => !i.scores)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["items"],
+          message: `Published article "${article.slug}" needs PawPicks Score inputs on every item.`,
+        });
+      }
       if (!article.verifiedAt) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -132,6 +172,14 @@ export const top10ArticleSchema = z
           message: `Published article "${article.slug}" must have verifiedAt set.`,
         });
       }
+    } else if (article.items.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["items"],
+        message: `Unpublished article "${article.slug}" must not carry ranked items.`,
+      });
     }
   });
 export type Top10Article = z.infer<typeof top10ArticleSchema>;
+/** Authoring shape for data files: defaulted fields (items, faq…) are optional. */
+export type Top10ArticleInput = z.input<typeof top10ArticleSchema>;

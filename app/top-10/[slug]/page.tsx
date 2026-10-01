@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
@@ -7,10 +6,16 @@ import { STORE_ENABLED } from "@/lib/store";
 import { SearchProvider } from "@/components/search-context";
 import { PromoBar, SiteFooter } from "@/components/sections";
 import { SiteHeader } from "@/components/site-header";
-import { serverEnv } from "@/lib/env";
+import { getSiteUrl, serverEnv } from "@/lib/env";
 import { getProducts } from "@/lib/products";
-import { getTop10ArticleBySlug, getTop10Articles } from "@/lib/top10";
-import { shopeeCtaLabel } from "@/lib/affiliate";
+import {
+  getTop10ArticleBySlug,
+  getTop10Articles,
+  getTop10StaticSlugs,
+  top10ArticleRoute,
+} from "@/lib/top10";
+import { Top10ArticleView } from "@/components/top10-article-view";
+import { top10JsonLd } from "@/lib/top10-jsonld";
 
 type Top10ArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -19,7 +24,7 @@ type Top10ArticlePageProps = {
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  return getTop10Articles().map((article) => ({ slug: article.slug }));
+  return getTop10StaticSlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -33,22 +38,30 @@ export async function generateMetadata({
   return {
     title: article.title,
     description: article.excerpt,
+    alternates: { canonical: top10ArticleRoute(article.slug) },
     robots: isPublished ? { index: true, follow: true } : { index: false, follow: false },
     openGraph: {
       title: article.title,
       description: article.excerpt,
       type: "article",
+      url: top10ArticleRoute(article.slug),
+      ...(article.coverImage ? { images: [article.coverImage] } : {}),
     },
   };
 }
 
 export default async function Top10ArticlePage({ params }: Top10ArticlePageProps) {
   const { slug } = await params;
+  // null = missing OR not viewable here (draft/coming_soon in production, archived) → 404.
   const article = getTop10ArticleBySlug(slug);
   if (!article) notFound();
 
   const products = await getProducts();
   const { SHIPPING_FLAT_RATE, FREE_SHIPPING_THRESHOLD } = serverEnv();
+  const related = getTop10Articles()
+    .filter((a) => a.slug !== article.slug && a.category === article.category)
+    .slice(0, 4);
+  const base = getSiteUrl();
 
   return (
     <CartProvider
@@ -60,37 +73,21 @@ export default async function Top10ArticlePage({ params }: Top10ArticlePageProps
         <PromoBar />
         <SiteHeader />
         <main id="top">
-          <section className="section top10-article">
-            <Link className="back-link" href="/top-10">
-              กลับไปดูทุกอันดับ
-            </Link>
-            <p className="eyebrow">{article.category}</p>
-            <h1>{article.title}</h1>
-            <p className="top10-article-excerpt">{article.excerpt}</p>
-
-            {article.status === "published" ? (
-              <ol className="top10-item-list">
-                {article.items.map((item) => (
-                  <li key={item.rank} className="top10-item">
-                    <span className="top10-item-rank">{item.rank}</span>
-                    <div>
-                      <h3>{item.productName}</h3>
-                      <p>{item.summary}</p>
-                      {item.shopeeUrl ? (
-                        <a href={item.shopeeUrl} target="_blank" rel="sponsored noopener nofollow">
-                          {shopeeCtaLabel(item.shopeeUrl)}
-                        </a>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div className="top10-coming-soon">
-                <p>กำลังจัดทำบทความนี้ — เร็วๆ นี้</p>
-              </div>
-            )}
-          </section>
+          {/* Structured data only for published articles — never on coming-soon pages. */}
+          {article.status === "published" ? (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify(top10JsonLd(article, base)).replace(/</g, "\\u003c"),
+              }}
+            />
+          ) : null}
+          <Top10ArticleView
+            article={article}
+            related={related}
+            products={products}
+            preview={article.status !== "published"}
+          />
         </main>
         <SiteFooter />
         {STORE_ENABLED ? <CartPanel /> : null}
