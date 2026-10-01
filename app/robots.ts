@@ -10,8 +10,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Nothing user-facing lives here; keep API + post-checkout pages out.
-      disallow: ["/api/", "/checkout/"],
+      // Nothing user-facing lives here; keep API, post-checkout, account and admin pages out.
+      disallow: ["/api/", "/checkout/", "/account", "/admin/"],
     },
     sitemap: `${base}/sitemap.xml`,
     host: base,
