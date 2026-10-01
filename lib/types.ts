@@ -32,6 +32,19 @@ export const productSchema = z.object({
   /** Available units, excluding active checkout reservations. Null = unconfirmed. */
   stockQuantity: z.number().int().nonnegative().nullable().default(null),
   lowStockThreshold: z.number().int().nonnegative().default(5),
+  /** Sale state from the DB. Absent for the static fallback → derived from active + stock. */
+  status: z.enum(["draft", "active", "out_of_stock", "archived"]).optional(),
+  sku: z.string().nullish(),
+  brand: z.string().nullish(),
+  model: z.string().nullish(),
+  compareAtPriceThb: z.number().int().nonnegative().nullish(),
+  fullDescription: z.string().nullish(),
+  keyFeatures: z.array(z.string()).optional(),
+  warranty: z.string().nullish(),
+  shippingWeightG: z.number().int().nonnegative().nullish(),
+  returnInfo: z.string().nullish(),
+  seoTitle: z.string().nullish(),
+  seoDescription: z.string().nullish(),
 });
 export type Product = z.infer<typeof productSchema>;
 
@@ -75,8 +88,12 @@ export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 
 export const orderStatusSchema = z.enum([
   "pending",
+  "awaiting_payment",
   "paid",
+  "processing",
+  "shipped",
   "fulfilled",
+  "completed",
   "cancelled",
   "refunded",
 ]);

@@ -25,3 +25,12 @@ NEXT_PUBLIC_SITE_URL (= Preview URL), NEXT_PUBLIC_STORE_ENABLED=true
 ## 4) ข้อมูลสินค้า
 กรอก `docs/product-data-template.csv` (ราคา/stock จริงเท่านั้น) แล้วส่งให้ นำเข้า Dev DB
 บัตรทดสอบ Stripe: 4242 4242 4242 4242 (สำเร็จ), 4000 0000 0000 0002 (ปฏิเสธ)
+
+## 5) Migrations ใหม่ (ยังไม่ถูกใช้กับ Production)
+`20261001000000_order_status_values.sql` และ `20261001000100_product_catalog_fields.sql`
+- เพิ่มคอลัมน์/สถานะเท่านั้น (ไม่ลบ/ไม่แก้ข้อมูลเดิม) ทดสอบด้วย Postgres จำลองใน `tests/product-migration.test.ts`
+- ใช้ `npx supabase db push` กับ **Dev project เท่านั้น** ก่อน เช็ก ref ให้ไม่ใช่ anqnryqdpcnlixjxobfq
+- ก่อนขึ้น Production: รีวิวไฟล์, สำรองข้อมูล, ขออนุมัติเจ้าของ
+- ย้อนกลับ: ค่า enum ที่เพิ่มแล้วลบไม่ได้ง่าย (ปล่อยไว้ไม่มีผล); ส่วนสินค้า = `drop trigger products_sync_status`, drop คอลัมน์ใหม่ + `status`, และคืน `reserve_stock/apply_checkout_event/ship_order` จาก migration 20260912010000
+- `active` ยังอยู่ แต่ถูกคำนวณจาก `status` (active = status <> 'archived'); draft = แสดงผลแต่ยังขายไม่ได้
+- ค่าส่งยังคำนวณระดับ order บน server (ไม่ได้เพิ่ม shipping_fee รายสินค้า เพราะยังไม่มี logic ใช้)

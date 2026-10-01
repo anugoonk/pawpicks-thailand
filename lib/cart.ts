@@ -3,8 +3,10 @@ import type { Product } from "@/lib/types";
 /** Max units of a single product per order — mirrors cartItemSchema. */
 export const MAX_QTY = 20;
 
-export function availableQuantity(product: Pick<Product, "active" | "stockQuantity">): number {
-  return product.active ? Math.min(MAX_QTY, product.stockQuantity ?? 0) : 0;
+type Sellable = Pick<Product, "active" | "stockQuantity"> & Partial<Pick<Product, "status">>;
+
+export function availableQuantity(product: Sellable): number {
+  return canPurchase(product) ? Math.min(MAX_QTY, product.stockQuantity ?? 0) : 0;
 }
 
 export type ProductStatus = "draft" | "active" | "out_of_stock" | "archived";
@@ -13,24 +15,24 @@ export type ProductStatus = "draft" | "active" | "out_of_stock" | "archived";
  * Derived sale status. Active with unconfirmed stock (null) stays "draft":
  * a product is never presented as sellable without a confirmed count.
  */
-export function productStatus(
-  product: Pick<Product, "active" | "stockQuantity">,
-): ProductStatus {
+export function productStatus(product: Sellable): ProductStatus {
+  // The DB status wins (e.g. an owner-held "draft" that already has stock).
+  if (product.status) return product.status;
   if (!product.active) return "archived";
   if (product.stockQuantity === null) return "draft";
   return product.stockQuantity > 0 ? "active" : "out_of_stock";
 }
 
 /** The add-to-cart button is shown only for active products with stock > 0. */
-export function canPurchase(
-  product: Pick<Product, "active" | "stockQuantity">,
-): boolean {
-  return productStatus(product) === "active";
+export function canPurchase(product: Sellable): boolean {
+  return productStatus(product) === "active" && (product.stockQuantity ?? 0) > 0;
 }
 
-export function stockLabel(product: Pick<Product, "stockQuantity">): string {
+export function stockLabel(product: Pick<Product, "stockQuantity"> & Partial<Pick<Product, "status">>): string {
   if (product.stockQuantity === null) return "รอยืนยันสต็อก";
   if (product.stockQuantity === 0) return "สินค้าหมด";
+  // Stock is counted but the owner has not released the product for sale yet.
+  if (product.status && product.status !== "active") return "กำลังตรวจสอบข้อมูล";
   return `พร้อมส่ง ${product.stockQuantity} ชิ้น`;
 }
 

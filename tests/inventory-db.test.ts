@@ -23,7 +23,7 @@ beforeAll(async () => {
     create table storage.objects(id uuid primary key, bucket_id text);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   `);
-  for (const file of ["20260910120000_init.sql", "20260910120100_rls.sql", "20260911000000_security_hardening.sql", "20260911000001_handle_new_user_revoke_public.sql", "20260912000000_orders_shipping_address.sql", "20260912010000_product_inventory_shipping.sql"]) {
+  for (const file of ["20260910120000_init.sql", "20260910120100_rls.sql", "20260911000000_security_hardening.sql", "20260911000001_handle_new_user_revoke_public.sql", "20260912000000_orders_shipping_address.sql", "20260912010000_product_inventory_shipping.sql", "20261001000000_order_status_values.sql", "20261001000100_product_catalog_fields.sql"]) {
     // PGlite has gen_random_uuid built in; the optional pgcrypto extension is unnecessary here.
     await db.exec(readFileSync(`supabase/migrations/${file}`, "utf8").replace('create extension if not exists "pgcrypto";', ""));
   }

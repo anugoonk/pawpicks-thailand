@@ -2,12 +2,12 @@
 
 import { useActionState } from "react";
 import { saveShipment } from "@/app/admin/orders/actions";
-import { CARRIERS } from "@/lib/shipping";
+import { CARRIERS, isShippableStatus } from "@/lib/shipping";
 import type { MyOrder } from "@/lib/orders";
 
 export function ShipmentForm({ order }: { order: MyOrder }) {
   const [state, action, pending] = useActionState(saveShipment, {});
-  if (!["paid", "fulfilled"].includes(order.status)) return <span className="field-help">ยังไม่สามารถจัดส่งคำสั่งซื้อนี้ได้</span>;
+  if (!isShippableStatus(order.status)) return <span className="field-help">ยังไม่สามารถจัดส่งคำสั่งซื้อนี้ได้</span>;
   return <form action={action} className="editor-form shipment-form">
     <input type="hidden" name="orderId" value={order.id} />
     <label>บริษัทขนส่ง<select name="carrier" defaultValue={order.shippingCarrier ?? ""} required><option value="" disabled>เลือกบริษัทขนส่ง</option>{CARRIERS.map((carrier) => <option key={carrier}>{carrier}</option>)}</select></label>

@@ -35,8 +35,8 @@ export async function generateMetadata({
   if (!product) return {};
 
   return {
-    title: product.name,
-    description: product.description,
+    title: product.seoTitle || product.name,
+    description: product.seoDescription || product.description,
     alternates: { canonical: `/products/${product.slug}` },
     openGraph: {
       title: product.name,
@@ -113,6 +113,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <div><dt>วัสดุ</dt><dd>{product.details.material || "กำลังตรวจสอบข้อมูล"}</dd></div>
                 <div><dt>เหมาะกับ</dt><dd>{product.details.suitableFor || "กำลังตรวจสอบข้อมูล"}</dd></div>
                 <div><dt>วิธีใช้</dt><dd className="preserve-lines">{product.details.instructions || "กำลังตรวจสอบข้อมูล"}</dd></div>
+                <div><dt>การรับประกัน</dt><dd>{product.warranty || "กำลังตรวจสอบข้อมูล"}</dd></div>
               </dl>
             </div>
           </section>

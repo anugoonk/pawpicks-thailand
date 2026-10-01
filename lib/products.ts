@@ -28,6 +28,18 @@ export function rowToProduct(row: Record<string, unknown>): Product {
     details: row.details ?? {},
     stockQuantity: row.stock_quantity ?? null,
     lowStockThreshold: row.low_stock_threshold ?? 5,
+    status: row.status ?? undefined,
+    sku: row.sku ?? null,
+    brand: row.brand ?? null,
+    model: row.model ?? null,
+    compareAtPriceThb: row.compare_at_price_thb ?? null,
+    fullDescription: row.full_description ?? null,
+    keyFeatures: row.key_features ?? [],
+    warranty: row.warranty ?? null,
+    shippingWeightG: row.shipping_weight_g ?? null,
+    returnInfo: row.return_info ?? null,
+    seoTitle: row.seo_title ?? null,
+    seoDescription: row.seo_description ?? null,
   });
 }
 

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { hasSupabase } from "@/lib/env";
 import { formatThb } from "@/lib/format";
+import { isClosedStatus, isPaidStatus } from "@/lib/shipping";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +49,8 @@ export default async function CheckoutSuccessPage({
   const { session_id: sessionId } = await searchParams;
   const order = sessionId ? await lookupOrder(sessionId) : null;
 
-  const paid = order?.status === "paid" || order?.status === "fulfilled";
-  const cancelled = order?.status === "cancelled" || order?.status === "refunded";
+  const paid = order ? isPaidStatus(order.status) : false;
+  const cancelled = order ? isClosedStatus(order.status) : false;
   const ref = sessionId ? sessionId.slice(-8).toUpperCase() : null;
 
   return (

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import type Stripe from "stripe";
 import { getSiteUrl, hasStripe, hasSupabase, serverEnv } from "@/lib/env";
+import { canPurchase } from "@/lib/cart";
 import { getProductsByIds } from "@/lib/products";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { getStripe, assertTestModeOutsideProduction } from "@/lib/stripe";
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
         { status: 422 },
       );
     }
-    if (product.stockQuantity === null || item.quantity > product.stockQuantity) {
+    if (!canPurchase(product) || item.quantity > (product.stockQuantity ?? 0)) {
       return NextResponse.json({ error: "insufficient_stock", productId: item.productId }, { status: 409 });
     }
     subtotalThb += product.priceThb * item.quantity;
