@@ -1,8 +1,11 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, isProductionDeploy } from "@/lib/env";
 
 export default function robots(): MetadataRoute.Robots {
   const base = getSiteUrl();
+  if (!isProductionDeploy()) {
+    return { rules: { userAgent: "*", disallow: "/" } };
+  }
   return {
     rules: {
       userAgent: "*",

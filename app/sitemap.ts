@@ -1,30 +1,32 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/env";
+import { LEGAL_PAGES, isLegalPageIndexable } from "@/lib/legal";
+import { getProducts } from "@/lib/products";
 import { getPublishedTop10Articles, top10ArticleRoute } from "@/lib/top10";
 
-// Single-page storefront: every section is an anchor on `/`, so the sitemap
-// has just the one canonical entry, plus published Top 10 articles. Add
-// other real routes here as they appear.
-export default function sitemap(): MetadataRoute.Sitemap {
+// Only indexable URLs: home, /top-10, product pages, published articles and
+// legal pages that are ready. Draft/coming_soon/placeholder pages stay out.
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
+  const products = await getProducts();
   return [
-    {
-      url: `${base}/`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${base}/top-10`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
+    { url: `${base}/`, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
+    { url: `${base}/top-10`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    ...products.map((p) => ({
+      url: `${base}/products/${p.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
     ...getPublishedTop10Articles().map((article) => ({
       url: `${base}${top10ArticleRoute(article.slug)}`,
-      lastModified: article.verifiedAt ? new Date(article.verifiedAt) : new Date(),
+      lastModified: article.updatedAt ? new Date(article.updatedAt) : new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.6,
+    })),
+    ...LEGAL_PAGES.filter((p) => isLegalPageIndexable(p.href)).map((p) => ({
+      url: `${base}${p.href}`,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
     })),
   ];
 }

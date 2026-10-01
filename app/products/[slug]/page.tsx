@@ -14,6 +14,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getSiteUrl, serverEnv } from "@/lib/env";
 import { formatThb } from "@/lib/format";
 import { getProductBySlug, getProducts } from "@/lib/products";
+import { productJsonLd } from "@/lib/product-jsonld";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -36,6 +37,7 @@ export async function generateMetadata({
   return {
     title: product.name,
     description: product.description,
+    alternates: { canonical: `/products/${product.slug}` },
     openGraph: {
       title: product.name,
       description: product.description,
@@ -69,6 +71,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <PromoBar />
         <SiteHeader />
         <main id="top">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(productJsonLd(product, getSiteUrl(), STORE_ENABLED)).replace(/</g, "\\u003c"),
+            }}
+          />
           <section className="product-detail">
             <div className="product-detail-media">
               <ProductGallery key={product.id} product={product} />

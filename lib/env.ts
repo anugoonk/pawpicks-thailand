@@ -70,3 +70,11 @@ export function hasSupabase(): boolean {
 export function hasStripe(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
+
+/** True only on the real production deployment (not Vercel Preview, not local dev). */
+export function isProductionDeploy(): boolean {
+  return (
+    process.env.VERCEL_ENV === "production" ||
+    (!process.env.VERCEL_ENV && process.env.NODE_ENV === "production")
+  );
+}

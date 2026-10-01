@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LEGAL_PAGES } from "@/lib/legal";
 import { NewSectionFilterState } from "@/components/new-section-filter-state";
 import { QueryLink } from "@/components/query-link";
 import { CAT_TEAM, COLLECTIONS } from "@/lib/data";
@@ -173,6 +174,11 @@ export function SiteFooter() {
         </span>
       </div>
       <p>คัดของดี เพื่อชีวิตที่ดีขึ้นของแมวและคนที่รักแมว</p>
+      <nav className="footer-links" aria-label="ข้อมูลและนโยบาย">
+        {LEGAL_PAGES.map((p) => (
+          <Link key={p.href} href={p.href}>{p.label}</Link>
+        ))}
+      </nav>
       <small>
         บางลิงก์เป็นลิงก์ Affiliate
         เราอาจได้รับค่าคอมมิชชันโดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ

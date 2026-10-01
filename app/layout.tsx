@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Anuphan, DM_Sans } from "next/font/google";
 import "./globals.css";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, isProductionDeploy } from "@/lib/env";
 
 const anuphan = Anuphan({
   subsets: ["latin", "thai"],
@@ -38,7 +38,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: { card: "summary_large_image" },
-  robots: { index: true, follow: true },
+  // Preview deployments and local dev must never be indexed.
+  robots: { index: isProductionDeploy(), follow: isProductionDeploy() },
 };
 
 export const viewport: Viewport = {
@@ -52,7 +53,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="th" className={`${anuphan.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <a className="skip-link" href="#top">ข้ามไปยังเนื้อหาหลัก</a>
+        {children}
+      </body>
     </html>
   );
 }

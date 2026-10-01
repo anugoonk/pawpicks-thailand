@@ -1,11 +1,6 @@
 import { TOP10_ARTICLES } from "@/data/top10-articles";
+import { isProductionDeploy } from "@/lib/env";
 import { top10ArticleSchema, type Top10Article } from "@/lib/types";
-
-/** Production = the real domain. Preview deployments and local dev are not. */
-function isProductionEnv(): boolean {
-  return process.env.VERCEL_ENV === "production" ||
-    (!process.env.VERCEL_ENV && process.env.NODE_ENV === "production");
-}
 
 /**
  * Parsed once at module load: a `published` article that fails validation
@@ -41,7 +36,7 @@ export function getAllTop10Articles(): Top10Article[] {
  */
 export function isTop10PageViewable(
   status: Top10Article["status"],
-  production: boolean = isProductionEnv(),
+  production: boolean = isProductionDeploy(),
 ): boolean {
   if (status === "published") return true;
   if (status === "archived") return false;
