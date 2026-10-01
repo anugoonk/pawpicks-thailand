@@ -32,23 +32,27 @@ describe("trust pages", () => {
   });
 });
 
+type Offers = { offers?: Record<string, unknown> };
+const productNode = (p: Product, storeEnabled: boolean) =>
+  productJsonLd(p, base, storeEnabled)[0] as unknown as Offers;
+
 describe("product structured data", () => {
   it("omits offers when the store is off", () => {
-    const [prod] = productJsonLd(product, base, false) as [Record<string, unknown>];
+    const prod = productNode(product, false);
     expect(prod.offers).toBeUndefined();
   });
 
   it("omits offers when stock is unconfirmed or zero", () => {
     for (const stockQuantity of [null, 0]) {
-      const [prod] = productJsonLd({ ...product, stockQuantity }, base, true) as [Record<string, unknown>];
+      const prod = productNode({ ...product, stockQuantity }, true);
       expect(prod.offers).toBeUndefined();
     }
   });
 
   it("emits DB-matching price/availability only when purchasable", () => {
-    const [prod] = productJsonLd(product, base, true) as [{ offers: Record<string, unknown> }];
-    expect(prod.offers.price).toBe(100);
-    expect(prod.offers.availability).toBe("https://schema.org/InStock");
+    const prod = productNode(product, true);
+    expect(prod.offers?.price).toBe(100);
+    expect(prod.offers?.availability).toBe("https://schema.org/InStock");
   });
 
   it("never emits review or rating data", () => {
