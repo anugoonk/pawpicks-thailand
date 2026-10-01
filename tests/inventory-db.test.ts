@@ -122,3 +122,47 @@ describe("shipment authorization and payment state", () => {
     await expect(db.query("select ship_order($1,'Flash Express','TH123456789')", [adminId])).rejects.toThrow("forbidden");
   });
 });
+
+describe("order ownership (RLS)", () => {
+  const otherId = "00000000-0000-0000-0000-000000000003";
+  const as = (id: string) => db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${id}',false)`);
+  const orderIds = async () => (await db.query<{ stripe_session_id: string }>("select stripe_session_id from orders order by stripe_session_id")).rows.map((r) => r.stripe_session_id);
+
+  beforeEach(async () => {
+    await db.exec(`insert into auth.users values ('${otherId}', 'other@example.test') on conflict do nothing`);
+    // Two paid orders for two different buyers, written the way the webhook writes them.
+    await reserve("cs_mine"); await event("paid", "cs_mine");
+    await db.query("select apply_checkout_event($1, $2, false)", [JSON.stringify({
+      stripe_session_id: "cs_theirs", status: "paid", user_id: otherId, amount_total_thb: 100,
+      currency: "thb", paid_at: "2026-09-12T10:00:00Z",
+    }), JSON.stringify(lines)]);
+  });
+
+  it("a customer sees only their own orders and items", async () => {
+    await as(customerId);
+    expect(await orderIds()).toEqual(["cs_mine"]);
+    const items = await db.query<{ n: number }>("select count(*)::int as n from order_items");
+    expect(items.rows[0].n).toBe(1);
+  });
+
+  it("an admin sees every order", async () => {
+    await as(adminId);
+    expect(await orderIds()).toEqual(["cs_mine", "cs_theirs"]);
+  });
+
+  it("anonymous visitors see no orders", async () => {
+    await db.exec("set role anon");
+    await expect(orderIds()).resolves.toEqual([]);
+  });
+
+  it("a customer cannot mark an order paid, edit, insert or delete orders from the client", async () => {
+    await db.exec("reset role"); await db.exec("update orders set status='pending' where stripe_session_id='cs_mine'");
+    await as(customerId);
+    await db.query("update orders set status='paid' where stripe_session_id='cs_mine'");
+    await expect(db.query("insert into orders(stripe_session_id, user_id, status, amount_total_thb, currency) values ('cs_forged', $1, 'paid', 1, 'thb')", [customerId])).rejects.toThrow();
+    await db.query("delete from orders where stripe_session_id='cs_mine'");
+    await db.exec("reset role");
+    expect((await db.query("select stripe_session_id, status from orders where user_id=$1", [customerId])).rows)
+      .toEqual([{ stripe_session_id: "cs_mine", status: "pending" }]);
+  });
+});
