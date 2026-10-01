@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
+import { teamPathForCatId } from "@/data/team";
 import { STORE_ENABLED } from "@/lib/store";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductDetailActions } from "@/components/product-detail-actions";
@@ -81,14 +82,17 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <div className="product-detail-media">
               <ProductGallery key={product.id} product={product} />
               {product.companionImage ? (
-                <div className="product-detail-companion">
+                <Link
+                  className="product-detail-companion"
+                  href={teamPathForCatId(product.companionCatId)}
+                >
                   <img
                     src={product.companionImage}
                     alt={product.companionAlt ?? ""}
                     loading="lazy"
                   />
                   <span>{product.companionLabel}</span>
-                </div>
+                </Link>
               ) : null}
             </div>
 

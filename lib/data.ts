@@ -1,4 +1,4 @@
-import type { Cat, Collection, Product } from "@/lib/types";
+import type { Collection, Product } from "@/lib/types";
 
 /**
  * Static fallback content, mirroring the original static site 1:1.
@@ -156,19 +156,4 @@ export const COLLECTIONS: Collection[] = [
     ],
     sortOrder: 4,
   },
-];
-
-export const CAT_TEAM: Cat[] = [
-  { id: "cat-1", name: "แมวสีเทา", image: "/assets/cat-1.png", ariaLabel: "แมวสีเทา พาชมสินค้า", query: "pet tech", sortOrder: 1 },
-  { id: "cat-2", name: "แมวขาวตาสองสี", image: "/assets/cat-2.png", ariaLabel: "แมวขาวตาสองสี พาชมสินค้า", query: "น้ำพุ", sortOrder: 2 },
-  { id: "cat-3", name: "แมวดำ", image: "/assets/cat-3.png", ariaLabel: "แมวดำ พาชมสินค้า", query: "กล้อง", sortOrder: 3 },
-  { id: "cat-4", name: "แมวส้มลายเสือ", image: "/assets/cat-4.png", ariaLabel: "แมวส้มลายเสือ พาชมสินค้า", query: "อาหาร", sortOrder: 4 },
-  { id: "cat-5", name: "แมวสามสี", image: "/assets/cat-5.png", ariaLabel: "แมวสามสี พาชมสินค้า", query: "ลับเล็บ", sortOrder: 5 },
-  { id: "cat-6", name: "แมวขาวดำ", image: "/assets/cat-6.png", ariaLabel: "แมวขาวดำ พาชมสินค้า", query: "กล้อง", sortOrder: 6 },
-  { id: "cat-7", name: "แมวซิลเวอร์แท็บบี้", image: "/assets/cat-7.png", ariaLabel: "แมวซิลเวอร์แท็บบี้ พาชมสินค้า", query: "ลับเล็บ", sortOrder: 7 },
-  { id: "cat-8", name: "แมวส้มขาว", image: "/assets/cat-8.png", ariaLabel: "แมวส้มขาว พาชมสินค้า", query: "อาหาร", sortOrder: 8 },
-  { id: "cat-9", name: "แมวสีน้ำตาล", image: "/assets/cat-9.png", ariaLabel: "แมวสีน้ำตาล พาชมสินค้า", query: "", sortOrder: 9 },
-  { id: "cat-10", name: "แมวแท็บบี้สีน้ำตาล", image: "/assets/cat-10.png", ariaLabel: "แมวแท็บบี้สีน้ำตาล พาชมสินค้า", query: "ลับเล็บ", sortOrder: 10 },
-  { id: "cat-11", name: "แมวสีครีมส้ม", image: "/assets/cat-11.png", ariaLabel: "แมวสีครีมส้ม พาชมสินค้า", query: "น้ำพุ", sortOrder: 11 },
-  { id: "cat-12", name: "แมวแต้มเข้มตาฟ้า", image: "/assets/cat-12.png", ariaLabel: "แมวแต้มเข้มตาฟ้า พาชมสินค้า", query: "pet tech", sortOrder: 12 },
 ];

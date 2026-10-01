@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { TEAM } from "@/data/team";
 import { getSiteUrl } from "@/lib/env";
 import { LEGAL_PAGES, isLegalPageIndexable } from "@/lib/legal";
 import { getProducts } from "@/lib/products";
@@ -16,6 +17,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/products/${p.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.7,
+    })),
+    ...TEAM.map((cat) => ({
+      url: `${base}/team/${cat.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
     })),
     ...getPublishedTop10Articles().map((article) => ({
       url: `${base}${top10ArticleRoute(article.slug)}`,

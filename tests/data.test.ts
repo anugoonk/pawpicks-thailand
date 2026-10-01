@@ -1,14 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { CAT_TEAM, COLLECTIONS, FALLBACK_PRODUCTS } from "@/lib/data";
-import { catSchema, collectionSchema, productSchema } from "@/lib/types";
+import { TEAM, getTeamCatById } from "@/data/team";
+import { COLLECTIONS, FALLBACK_PRODUCTS } from "@/lib/data";
+import { collectionSchema, productSchema } from "@/lib/types";
 
 describe("static fallback content", () => {
-  it("keeps the original 12-cat team", () => {
-    expect(CAT_TEAM).toHaveLength(12);
-    CAT_TEAM.forEach((c) => expect(() => catSchema.parse(c)).not.toThrow());
-    expect(CAT_TEAM.map((c) => c.id)).toEqual(
-      Array.from({ length: 12 }, (_, i) => `cat-${i + 1}`),
+  it("keeps the 12-cat team with unique ids and slugs", () => {
+    expect(TEAM).toHaveLength(12);
+    expect(TEAM.map((c) => c.id).sort()).toEqual(
+      Array.from({ length: 12 }, (_, i) => `cat-${i + 1}`).sort(),
     );
+    expect(new Set(TEAM.map((c) => c.slug)).size).toBe(12);
+  });
+
+  it("only references products and collections that exist", () => {
+    const productSlugs = FALLBACK_PRODUCTS.map((p) => p.slug);
+    const collectionIds = COLLECTIONS.map((c) => c.id);
+    TEAM.forEach((c) => {
+      c.productSlugs.forEach((s) => expect(productSlugs).toContain(s));
+      c.collectionIds.forEach((id) => expect(collectionIds).toContain(id));
+    });
+  });
+
+  it("links every product companion badge to a team profile", () => {
+    FALLBACK_PRODUCTS.forEach((p) => {
+      if (p.companionCatId) {
+        expect(getTeamCatById(p.companionCatId)?.color).toBe(p.companionAlt);
+      }
+    });
   });
 
   it("keeps the 4 collections in display order", () => {

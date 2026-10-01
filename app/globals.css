@@ -245,3 +245,42 @@ mark.placeholder{background:#fff0ad;color:#6b4e00;padding:1px 6px;border-radius:
 .footer-links a{color:var(--muted);border-bottom:1px solid var(--line)}
 .footer-links a:hover,.footer-links a:focus-visible{color:var(--ink)}
 @media(max-width:560px){.static-facts div{grid-template-columns:1fr;gap:2px}}
+
+/* ---- team section + cat profile pages ---- */
+.team-line{margin:0 0 28px}
+.team-line h3{margin:0 0 12px;font-size:1rem;letter-spacing:-.01em}
+.cat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cat-card{flex-direction:row;align-items:center;text-align:left;gap:12px;padding:12px;border:1px solid var(--line);background:#fff;border-radius:16px;transition:.2s}
+.cat-card:hover,.cat-card:focus-visible{background:var(--yellow-soft);border-color:#edca4a}
+.cat-card img{flex:none;width:52px;height:60px}
+.cat-card .cat-card-text{display:flex;flex-direction:column;gap:2px;min-width:0;color:var(--ink)}
+.cat-card-text strong{font-size:.9rem;line-height:1.35}
+.cat-card-text small{color:var(--muted);font-size:.78rem;line-height:1.4}
+@media(min-width:640px){.cat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1000px){.cat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.cat-profile{max-width:980px;margin:0 auto}
+.cat-profile-layout{display:grid;gap:24px}
+.cat-profile-photo{display:flex;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px}
+.cat-profile-photo img{width:auto;max-width:100%;height:380px;object-fit:contain}
+.cat-profile-copy h1{margin:0 0 6px;font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.2;letter-spacing:-.03em}
+.cat-profile-role{margin:0 0 18px;font-weight:700;color:#8a6500}
+.cat-quote{margin:0 0 20px;padding:12px 16px;border-left:4px solid var(--yellow);background:var(--yellow-soft);border-radius:0 12px 12px 0;font-weight:600}
+.cat-facts{margin:0 0 24px;padding:18px;border:1px solid var(--line);border-radius:18px;background:#fff;display:grid;gap:12px}
+.cat-facts div{display:grid;gap:2px}
+.cat-facts dt{font-size:.78rem;font-weight:700;color:var(--muted)}
+.cat-facts dd{margin:0}
+.cat-links-title{margin:0 0 10px;font-size:1.05rem}
+.cat-links{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.cat-links a{display:inline-block;padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:700;font-size:.9rem}
+.cat-links a:hover,.cat-links a:focus-visible{background:var(--yellow-soft);border-color:#edca4a}
+.cat-profile-note{margin:18px 0 0;color:var(--muted);font-size:.82rem}
+.cat-pager{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:40px}
+.cat-pager a{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.cat-pager a:last-child{text-align:right}
+.cat-pager a:hover,.cat-pager a:focus-visible{background:var(--yellow-soft);border-color:#edca4a}
+.cat-pager small{color:var(--muted)}
+@media(min-width:860px){.cat-profile-layout{grid-template-columns:340px 1fr;gap:40px;align-items:start}.cat-profile-photo img{height:520px}}
+
+/* The global mobile `nav{position:absolute…}` dropdown rule was catching the footer links nav. */
+footer .footer-links{position:static;flex-direction:row;padding:0;background:none;border:0;border-radius:0;box-shadow:none}

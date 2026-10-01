@@ -2,7 +2,9 @@ import Link from "next/link";
 import { LEGAL_PAGES } from "@/lib/legal";
 import { NewSectionFilterState } from "@/components/new-section-filter-state";
 import { QueryLink } from "@/components/query-link";
-import { CAT_TEAM, COLLECTIONS } from "@/lib/data";
+import { TeamCard } from "@/components/team-card";
+import { TEAM, TEAM_LINES } from "@/data/team";
+import { COLLECTIONS } from "@/lib/data";
 import { getTop10Articles } from "@/lib/top10";
 
 /* All plain <img>: the original design relies on CSS object-fit / transform
@@ -144,21 +146,20 @@ export function CatTeam() {
         </div>
         <span>12 ตัว · ครอบครัวเดียวกัน</span>
       </div>
-      <div className="cat-grid">
-        {CAT_TEAM.map((cat) => (
-          <QueryLink
-            key={cat.id}
-            id={cat.id}
-            className="cat-card"
-            query={cat.query}
-            ariaLabel={cat.ariaLabel}
-          >
-            <img src={cat.image} alt={cat.name} loading="lazy" />
-            <span>{cat.name}</span>
-          </QueryLink>
-        ))}
-      </div>
-      <p className="team-note">มาสคอตประจำ PawPicks • ใช้สีและลายแทนชื่อ</p>
+      {TEAM_LINES.map((line) => (
+        <div className="team-line" key={line.id}>
+          <h3>{line.title}</h3>
+          <div className="cat-grid">
+            {TEAM.filter((cat) => cat.line === line.id).map((cat) => (
+              <TeamCard key={cat.id} cat={cat} />
+            ))}
+          </div>
+        </div>
+      ))}
+      <p className="team-note">
+        มาสคอตประจำ PawPicks • แมวแต่ละตัวมีหน้า profile ของตัวเอง
+        ระบุด้วยสีและลาย ไม่มีชื่อเล่น
+      </p>
     </section>
   );
 }

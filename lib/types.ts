@@ -59,17 +59,6 @@ export const collectionSchema = z.object({
 });
 export type Collection = z.infer<typeof collectionSchema>;
 
-/** A PawPicks mascot cat. */
-export const catSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  image: z.string(),
-  ariaLabel: z.string(),
-  query: z.string().default(""),
-  sortOrder: z.number().int().default(0),
-});
-export type Cat = z.infer<typeof catSchema>;
-
 /* ------------------------------------------------------------------ */
 /* Checkout                                                            */
 /* ------------------------------------------------------------------ */

@@ -6,6 +6,7 @@ import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
 import { shopeeCtaLabel } from "@/lib/affiliate";
 import { availableQuantity, canPurchase, stockLabel } from "@/lib/cart";
+import { teamPathForCatId } from "@/data/team";
 import { STORE_ENABLED } from "@/lib/store";
 import { formatThb } from "@/lib/format";
 import type { Product } from "@/lib/types";
@@ -71,14 +72,14 @@ export function ProductGrid({ products }: { products: Product[] }) {
             </Link>
             <div className="product-info">
               {p.companionCatId ? (
-                <a className="product-companion" href={`#${p.companionCatId}`}>
+                <Link className="product-companion" href={teamPathForCatId(p.companionCatId)}>
                   <img
                     src={p.companionImage ?? ""}
                     alt={p.companionAlt ?? ""}
                     loading="lazy"
                   />
                   <span>{p.companionLabel}</span>
-                </a>
+                </Link>
               ) : null}
               <small>{p.category}</small>
               <h3>
