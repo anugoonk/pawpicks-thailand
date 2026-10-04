@@ -24,9 +24,11 @@ describe("trust pages", () => {
   });
 
   it("placeholders are explicit and keep unfinished pages out of the index", () => {
-    expect(Object.values(BUSINESS).every((v) => v === PENDING)).toBe(true);
-    expect(LEGAL_READY).toBe(false);
-    expect(isLegalPageIndexable("/privacy")).toBe(false);
+    // Holds whether or not the owner has filled in the facts yet: any remaining
+    // placeholder must keep the legal pages noindex; once all are filled they go live.
+    const unfilled = Object.values(BUSINESS).some((v) => v === PENDING);
+    expect(LEGAL_READY).toBe(!unfilled);
+    expect(isLegalPageIndexable("/privacy")).toBe(!unfilled);
     // The disclosure is factual and never waits on owner data.
     expect(isLegalPageIndexable("/affiliate-disclosure")).toBe(true);
   });
