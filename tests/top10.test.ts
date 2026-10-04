@@ -29,7 +29,7 @@ describe("Top 10 article data", () => {
     expect(new Set(slugs).size).toBe(slugs.length);
   });
 
-  it("rejects a published article without 10 verified items", () => {
+  it("rejects a published article without enough verified items", () => {
     expect(() =>
       top10ArticleSchema.parse({
         slug: "broken",
@@ -41,6 +41,17 @@ describe("Top 10 article data", () => {
         items: [],
       }),
     ).toThrow();
+  });
+
+  it("accepts a shorter verified ranking (3–10 items) but not 2", () => {
+    const make = (n: number) =>
+      top10ArticleSchema.safeParse({
+        slug: "short", title: "Short", category: "Test", excerpt: "Test", updatedAt: "2026-10-01",
+        status: "published", verifiedAt: "2026-09-28",
+        items: Array.from({ length: n }, (_, i) => ({ rank: i + 1, productName: `P${i}`, summary: "s", scores: SCORES })),
+      }).success;
+    expect(make(3)).toBe(true);
+    expect(make(2)).toBe(false);
   });
 
   it("rejects a published article without verifiedAt", () => {

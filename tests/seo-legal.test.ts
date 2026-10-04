@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { isSafeAffiliateUrl, shopeeCtaLabel } from "@/lib/affiliate";
 import { FALLBACK_PRODUCTS } from "@/lib/data";
-import { CONTACT_CHANNELS, LEGAL_PAGES } from "@/lib/legal";
+import { LEGAL_PAGES } from "@/lib/legal";
+import { getContactChannels, siteConfig } from "@/lib/site-config";
 import { productJsonLd } from "@/lib/product-jsonld";
 import { top10JsonLd } from "@/lib/top10-jsonld";
 import { isProductionDeploy } from "@/lib/env";
@@ -34,7 +35,7 @@ describe("trust pages", () => {
   });
 
   it("contact channels are real links (or empty), never placeholders", () => {
-    for (const c of CONTACT_CHANNELS) {
+    for (const c of getContactChannels()) {
       expect(c.href).toMatch(/^(https:\/\/|mailto:)/);
       expect(c.text.trim()).not.toBe("");
     }

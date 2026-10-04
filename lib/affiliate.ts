@@ -27,6 +27,15 @@ export function shopeeCtaLabel(url: string): string {
   return isGenericShopeeSearch(url) ? "ค้นหาสินค้านี้บน Shopee ↗" : "ดูราคาใน Shopee ↗";
 }
 
+/** CTA label for any merchant: Shopee-aware, otherwise a neutral "view details". */
+export function affiliateCtaLabel(url: string): string {
+  try {
+    return new URL(url).hostname.includes("shopee") ? shopeeCtaLabel(url) : "ดูรายละเอียดสินค้า ↗";
+  } catch {
+    return "ดูรายละเอียดสินค้า ↗";
+  }
+}
+
 /** Short disclosure shown next to affiliate CTAs. */
 export const AFFILIATE_NOTE =
   "บางลิงก์เป็น Affiliate Link เราอาจได้รับค่าคอมมิชชันโดยไม่มีค่าใช้จ่ายเพิ่มสำหรับคุณ";

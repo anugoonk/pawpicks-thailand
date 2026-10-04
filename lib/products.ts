@@ -2,6 +2,7 @@ import "server-only";
 
 import { FALLBACK_PRODUCTS } from "@/lib/data";
 import { hasSupabase } from "@/lib/env";
+import { isProductPublic } from "@/lib/product-view";
 import { productSchema, type Product } from "@/lib/types";
 
 /** Map a `products` table row (snake_case) to the app `Product` type. */
@@ -44,11 +45,15 @@ export function rowToProduct(row: Record<string, unknown>): Product {
 }
 
 /**
- * Active products for the storefront. Reads Supabase when configured, and
+ * Active, publicly visible (not draft/archived) products for the storefront. Reads Supabase when configured, and
  * falls back to the static list (also used to seed the DB) otherwise or on
  * error — the marketing page must always render.
  */
 export async function getProducts(): Promise<Product[]> {
+  return (await loadProducts()).filter(isProductPublic);
+}
+
+async function loadProducts(): Promise<Product[]> {
   if (!hasSupabase()) return FALLBACK_PRODUCTS;
 
   try {

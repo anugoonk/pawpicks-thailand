@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { AffiliateLink } from "@/components/affiliate-link";
+import { productAffiliateUrl } from "@/lib/product-view";
 import { availableQuantity, canPurchase, stockLabel } from "@/lib/cart";
 import { formatThb } from "@/lib/format";
 import { STORE_ENABLED } from "@/lib/store";
@@ -45,7 +46,14 @@ export function ProductDetailActions({ product }: { product: Product }) {
           ) : null}
         </>
       ) : null}
-      <AffiliateLink className="shopee-link" href={product.shopeeUrl} />
+      <AffiliateLink
+        className="shopee-link"
+        href={productAffiliateUrl(product)}
+        merchant={product.merchant}
+        productId={product.id}
+        productName={product.name}
+        placement="product_detail"
+      />
     </div>
   );
 }

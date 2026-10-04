@@ -3,6 +3,8 @@ import { TEAM } from "@/data/team";
 import { getSiteUrl } from "@/lib/env";
 import { LEGAL_PAGES } from "@/lib/legal";
 import { getProducts } from "@/lib/products";
+import { getPopulatedCategories, categoryRoute } from "@/lib/categories";
+import { getPublishedGuides, guideRoute } from "@/lib/guides";
 import { getPublishedTop10Articles, top10ArticleRoute } from "@/lib/top10";
 
 // Only indexable URLs: home, /top-10, product pages, team profiles, published
@@ -17,6 +19,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}/products/${p.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.7,
+    })),
+    // Only categories/guides that actually have content (no empty pages in the index).
+    ...getPopulatedCategories(products).map((c) => ({
+      url: `${base}${categoryRoute(c.slug)}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+    ...getPublishedGuides().map((g) => ({
+      url: `${base}${guideRoute(g.slug)}`,
+      lastModified: new Date(g.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
     ...TEAM.map((cat) => ({
       url: `${base}/team/${cat.slug}`,

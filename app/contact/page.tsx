@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { StaticPage } from "@/components/static-page";
-import { CONTACT_CHANNELS } from "@/lib/legal";
+import { getContactChannels } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "ติดต่อเรา",
@@ -9,16 +9,17 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
+  const channels = getContactChannels();
   return (
     <StaticPage
       title="ติดต่อเรา"
       intro="PawPicks Thailand เป็นเว็บไซต์แนะนำและคัดเลือกสินค้าเกี่ยวกับแมวและ Pet Tech"
     >
-      {CONTACT_CHANNELS.length > 0 ? (
+      {channels.length > 0 ? (
         <>
           <h2>ช่องทางติดต่อ PawPicks</h2>
           <dl className="static-facts">
-            {CONTACT_CHANNELS.map((c) => (
+            {channels.map((c) => (
               <div key={c.href}>
                 <dt>{c.label}</dt>
                 <dd><a href={c.href} target="_blank" rel="noopener noreferrer">{c.text}</a></dd>

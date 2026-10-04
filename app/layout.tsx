@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Anuphan, DM_Sans } from "next/font/google";
 import "./globals.css";
-import { getSiteUrl, isProductionDeploy } from "@/lib/env";
+import { isProductionDeploy } from "@/lib/env";
+import { siteConfig } from "@/lib/site-config";
 
 const anuphan = Anuphan({
   subsets: ["latin", "thai"],
@@ -17,24 +18,22 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-const siteUrl = getSiteUrl();
+const siteUrl = siteConfig.siteUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "PawPicks Thailand — ของดีที่แมวเลือก",
-    template: "%s · PawPicks Thailand",
+    default: siteConfig.seo.defaultTitle,
+    template: siteConfig.seo.titleTemplate,
   },
-  description:
-    "PawPicks Thailand คัดเลือกของใช้แมวและ Pet Tech พร้อมข้อมูลสินค้าและบริการที่ชัดเจน",
-  applicationName: "PawPicks Thailand",
+  description: siteConfig.description,
+  applicationName: siteConfig.siteName,
   openGraph: {
-    title: "PawPicks Thailand — ของดีที่แมวเลือก",
-    description:
-      "ของใช้แมวและ Pet Tech ในที่เดียว คัดเลือกจากคุณสมบัติ ราคา และความปลอดภัย เพื่อชีวิตที่ดีขึ้นของแมวและคนที่รักแมว",
+    title: siteConfig.seo.defaultTitle,
+    description: siteConfig.seo.defaultDescription,
     url: siteUrl,
-    siteName: "PawPicks Thailand",
-    locale: "th_TH",
+    siteName: siteConfig.siteName,
+    locale: siteConfig.locale,
     type: "website",
   },
   twitter: { card: "summary_large_image" },

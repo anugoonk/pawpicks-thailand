@@ -286,3 +286,48 @@ mark.placeholder{background:#fff0ad;color:#6b4e00;padding:1px 6px;border-radius:
 footer .footer-links{position:static;flex-direction:row;padding:0;background:none;border:0;border-radius:0;box-shadow:none}
 
 .affiliate-note{margin:18px 0 0;color:var(--muted);font-size:.82rem}
+
+/* ---- master content system: breadcrumbs, product sections, guides, comparison ---- */
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.breadcrumbs{font-size:.82rem;color:var(--muted);margin-bottom:18px}
+.breadcrumbs a{border-bottom:1px solid var(--line)}
+.affiliate-disclosure-box{margin:24px 0;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--muted);font-size:.85rem}
+.affiliate-disclosure-box p{margin:0 0 6px}.affiliate-disclosure-box p:last-child{margin:0}
+.affiliate-disclosure-box a{border-bottom:1px solid var(--line);color:var(--ink)}
+.product-meta{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 8px;font-size:.85rem;color:var(--muted)}
+.product-highlights{margin:0 0 10px;padding-left:18px;font-size:.85rem;color:var(--muted)}
+.price-original{color:var(--muted);font-weight:400;font-size:.9em}
+.badge.discount{left:auto;right:14px;background:var(--mint);color:#fff}
+.product-merchant{display:block;margin-bottom:6px;color:var(--muted);font-size:.78rem}
+.product-sections{max-width:860px;margin:0 auto}
+.guide-block{margin:0 0 32px}
+.guide-block h2{font-size:1.35rem;margin:0 0 12px}
+.guide-block ul,.guide-block ol{padding-left:20px}
+.ps-pc-grid{display:grid;gap:16px}
+.ps-pc-grid h3{margin:0 0 6px;font-size:1rem}
+@media(min-width:700px){.ps-pc-grid{grid-template-columns:1fr 1fr}}
+.guide-article,.category-page{max-width:900px}
+.guide-header h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.2;letter-spacing:-.03em;margin:0 0 10px}
+.guide-excerpt{font-size:1.05rem;color:var(--muted);margin:0 0 10px}
+.guide-byline{font-size:.85rem;color:var(--muted);margin:0}
+.guide-preview{padding:10px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:.85rem}
+.guide-cover img{width:100%;height:auto;border-radius:20px}
+.guide-toc{margin:24px 0;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.guide-toc h2{margin:0 0 8px;font-size:1rem}.guide-toc ol{margin:0;padding-left:20px}.guide-toc-sub{margin-left:14px;list-style:circle}
+.guide-body{font-size:1.02rem;line-height:1.75}
+.guide-body h2{margin:36px 0 12px;font-size:1.5rem;scroll-margin-top:90px}.guide-body h3{margin:24px 0 8px;scroll-margin-top:90px}
+.guide-body img{max-width:100%;height:auto;border-radius:14px}
+.guide-callout{margin:20px 0;padding:14px 18px;border-left:4px solid var(--yellow);background:var(--yellow-soft);border-radius:0 12px 12px 0}
+.guide-callout p{margin:4px 0 0}
+.guide-list{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.guide-list h2{margin:0 0 4px;font-size:1.2rem}.guide-list p{margin:0;color:var(--muted)}
+.guide-final-cta{margin:36px 0 0;text-align:center}
+.chip-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.chip-list a{display:inline-block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:700;font-size:.9rem}
+.compare-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.compare-table{border-collapse:collapse;width:100%;min-width:520px;background:#fff;border:1px solid var(--line);border-radius:14px;font-size:.9rem}
+.compare-table th,.compare-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.compare-table thead th{background:var(--yellow-soft)}
+.compare-table tbody th{font-weight:700;color:var(--muted);white-space:nowrap}
+.compare-empty{color:var(--muted)}
+.compare-note{color:var(--muted);font-size:.85rem}

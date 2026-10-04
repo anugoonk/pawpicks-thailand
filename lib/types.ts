@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
 /** A curated product shown on the storefront. */
 export const productSchema = z.object({
   id: z.string(),
@@ -49,8 +51,9 @@ export const productSchema = z.object({
      shows each one only when real, verified data exists. `shopeeUrl` is the
      affiliate URL; `originalPrice` is `compareAtPriceThb`. */
   merchant: z.string().nullish(),
-  /** ISO date (YYYY-MM-DD) the price/rating was last checked on the merchant. */
-  lastChecked: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+  /** ISO dates (YYYY-MM-DD): when price/availability, and the rest of the data, were last verified. */
+  lastPriceCheck: isoDate.nullish(),
+  lastDataCheck: isoDate.nullish(),
   /** 0–5; shown only together with `reviewCount`. */
   rating: z.number().min(0).max(5).nullish(),
   reviewCount: z.number().int().nonnegative().nullish(),
@@ -58,8 +61,43 @@ export const productSchema = z.object({
   pros: z.array(z.string()).optional(),
   cons: z.array(z.string()).optional(),
   bestFor: z.string().nullish(),
+  notIdealFor: z.string().nullish(),
+  shortName: z.string().nullish(),
+  subCategory: z.string().nullish(),
+  tags: z.array(z.string()).optional(),
+  shortDescription: z.string().nullish(),
+  /** ISO 4217; the UI formats THB only, so leave unset unless a non-THB price is ever added. */
+  currency: z.string().length(3).nullish(),
+  /** Affiliate tracking URL (falls back to `shopeeUrl`) and the plain merchant URL. */
+  affiliateUrl: z.string().url().nullish(),
+  originalUrl: z.string().url().nullish(),
+  /** Label → value, e.g. { "ความจุ": "4 ลิตร" }. Only verified specs. */
+  specifications: z.record(z.string(), z.string()).optional(),
+  /** Short human note from the editor; shown as an opinion, never as a test result. */
+  editorNote: z.string().nullish(),
+  verified: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  recommended: z.boolean().optional(),
+  availability: z.enum(["available", "limited", "unavailable"]).nullish(),
+  /** Editorial visibility; unset = published. Independent of the commerce `status`. */
+  contentStatus: z.enum(["draft", "published", "archived"]).optional(),
+  ogImage: z.string().nullish(),
+  createdAt: z.string().nullish(),
+  updatedAt: z.string().nullish(),
 });
 export type Product = z.infer<typeof productSchema>;
+
+/**
+ * Commission terms are business-confidential: they live in this separate
+ * shape, keyed by product id, and are NEVER part of `Product` — `Product`
+ * objects are serialised to the browser. Use server-side/admin tooling only.
+ */
+export const productInternalSchema = z.object({
+  productId: z.string(),
+  affiliateCommission: z.number().nonnegative().optional(),
+  commissionType: z.enum(["percent", "fixed"]).optional(),
+});
+export type ProductInternal = z.infer<typeof productInternalSchema>;
 
 /** A "shop by collection" card. Visual label/order come from CSS ::before. */
 export const collectionSchema = z.object({
@@ -105,6 +143,9 @@ export type OrderStatus = z.infer<typeof orderStatusSchema>;
 /* Top 10 articles                                                     */
 /* ------------------------------------------------------------------ */
 
+/** A ranking needs at least this many verified items to be published (it does not have to be a full 10). */
+export const MIN_RANKED_ITEMS = 3;
+
 export const articleStatusSchema = z.enum(["draft", "coming_soon", "published", "archived"]);
 export type ArticleStatus = z.infer<typeof articleStatusSchema>;
 
@@ -143,7 +184,7 @@ export const top10FaqSchema = z.object({ question: z.string().min(1), answer: z.
 /**
  * A PawPicks Top 10 article. Only `published` articles may carry real ranked
  * items — everything else stays empty so the site never shows fabricated
- * products, prices, or reviews. A `published` article without exactly 10
+ * products, prices, or reviews. A `published` article without 3–10
  * verified, scored items fails to parse, which fails the build.
  *
  * Visibility: published = public + sitemap; coming_soon = card only (page is
@@ -176,11 +217,11 @@ export const top10ArticleSchema = z
   })
   .superRefine((article, ctx) => {
     if (article.status === "published") {
-      if (article.items.length !== 10) {
+      if (article.items.length < MIN_RANKED_ITEMS || article.items.length > 10) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["items"],
-          message: `Published article "${article.slug}" must have exactly 10 verified items (has ${article.items.length}).`,
+          message: `Published article "${article.slug}" must have ${MIN_RANKED_ITEMS}–10 verified items (has ${article.items.length}).`,
         });
       }
       if (article.items.some((i) => !i.scores)) {

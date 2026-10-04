@@ -1,13 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
-import { AffiliateLink } from "@/components/affiliate-link";
-import { AFFILIATE_NOTE, isGenericShopeeSearch } from "@/lib/affiliate";
+import { AffiliateNotice } from "@/components/affiliate-notices";
+import { ProductCard } from "@/components/product-card";
 import { availableQuantity, canPurchase, stockLabel } from "@/lib/cart";
-import { teamPathForCatId } from "@/data/team";
 import { STORE_ENABLED } from "@/lib/store";
 import { formatThb } from "@/lib/format";
 import type { Product } from "@/lib/types";
@@ -20,6 +18,8 @@ function haystack(p: Product): string {
     p.description,
     p.companionLabel ?? "",
     p.badge ?? "",
+    p.brand ?? "",
+    (p.tags ?? []).join(" "),
   ]
     .join(" ")
     .toLowerCase();
@@ -52,73 +52,31 @@ export function ProductGrid({ products }: { products: Product[] }) {
     <>
       <div className="product-grid" id="productGrid">
         {products.map((p, i) => (
-          <article
+          <ProductCard
             key={p.id}
-            className="product-card"
-            data-search={p.searchKeywords}
+            product={p}
             hidden={!matches[i]}
-          >
-            <Link
-              className={`product-image product-image-link ${p.imageCrop ?? ""}`.trim()}
-              href={`/products/${p.slug}`}
-              aria-label={`ดูรายละเอียด ${p.name}`}
-            >
-              {/* Plain <img>: the original design crops via CSS transform:scale. */}
-              <img src={p.image} alt={p.name} />
-              {p.badge ? (
-                <span className={`badge${p.badgeDark ? " dark" : ""}`}>
-                  {p.badge}
-                </span>
-              ) : null}
-            </Link>
-            <div className="product-info">
-              {p.companionCatId ? (
-                <Link className="product-companion" href={teamPathForCatId(p.companionCatId)}>
-                  <img
-                    src={p.companionImage ?? ""}
-                    alt={p.companionAlt ?? ""}
-                    loading="lazy"
-                  />
-                  <span>{p.companionLabel}</span>
-                </Link>
-              ) : null}
-              <small>{p.category}</small>
-              <h3>
-                <Link className="product-title-link" href={`/products/${p.slug}`}>
-                  {p.name}
-                </Link>
-              </h3>
-              <p>{p.description}</p>
-              <div className="product-actions">
-                {STORE_ENABLED ? (
-                  <>
-                    <p className="stock-status">{stockLabel(p)}</p>
-                    {canPurchase(p) ? (
-                      <button
-                        className="add-to-cart"
-                        onClick={() => addToCart(p.id)}
-                        aria-label={`เพิ่ม ${p.name} ลงตะกร้า`}
-                        disabled={(lines.find((line) => line.product.id === p.id)?.quantity ?? 0) >= availableQuantity(p)}
-                      >
-                        {added === p.id ? "เพิ่มแล้ว ✓" : `เพิ่มลงตะกร้า · ${formatThb(p.priceThb)}`}
-                      </button>
-                    ) : null}
-                  </>
-                ) : (
-                  <p className="product-reference-price">
-                    {isGenericShopeeSearch(p.shopeeUrl)
-                      ? "เช็กราคาล่าสุดบน Shopee"
-                      : `ราคาอ้างอิง ${formatThb(p.priceThb)}`}
-                  </p>
-                )}
-                {/* Marketplace links are a secondary option, never the main CTA. */}
-                <AffiliateLink className="shopee-link" href={p.shopeeUrl} />
-              </div>
-            </div>
-          </article>
+            actions={
+              STORE_ENABLED ? (
+                <>
+                  <p className="stock-status">{stockLabel(p)}</p>
+                  {canPurchase(p) ? (
+                    <button
+                      className="add-to-cart"
+                      onClick={() => addToCart(p.id)}
+                      aria-label={`เพิ่ม ${p.name} ลงตะกร้า`}
+                      disabled={(lines.find((line) => line.product.id === p.id)?.quantity ?? 0) >= availableQuantity(p)}
+                    >
+                      {added === p.id ? "เพิ่มแล้ว ✓" : `เพิ่มลงตะกร้า · ${formatThb(p.priceThb)}`}
+                    </button>
+                  ) : null}
+                </>
+              ) : undefined
+            }
+          />
         ))}
       </div>
-      <p className="affiliate-note">{AFFILIATE_NOTE}</p>
+      <AffiliateNotice />
       <div
         className="empty-state"
         id="emptyState"

@@ -1,28 +1,9 @@
 /**
- * Trust/legal pages and the contact channels they quote.
+ * Trust/legal pages listed in the footer and sitemap.
  *
  * PawPicks is a content + product-recommendation + affiliate site: it does not
- * take orders, payments or ship goods. Nothing here is invented — every
- * contact channel must be a real one the owner has supplied.
+ * take orders, payments or ship goods. Contact details come from lib/site-config.ts.
  */
-
-export type ContactChannel = {
-  /** e.g. "Facebook Page", "อีเมล" */
-  label: string;
-  /** Text shown to the visitor, e.g. the email address or page name. */
-  text: string;
-  /** Link target, e.g. "mailto:…" or "https://facebook.com/…". */
-  href: string;
-};
-
-/**
- * Real contact channels, shown on /contact. Empty until the owner supplies
- * some — the page then hides the section instead of showing a placeholder.
- * To add one:
- *   { label: "Facebook Page", text: "PawPicks Thailand", href: "https://facebook.com/…" }
- *   { label: "อีเมล", text: "hello@example.com", href: "mailto:hello@example.com" }
- */
-export const CONTACT_CHANNELS: readonly ContactChannel[] = [];
 
 export const LEGAL_PAGES = [
   { href: "/how-we-choose", label: "วิธีที่เราเลือกสินค้า" },

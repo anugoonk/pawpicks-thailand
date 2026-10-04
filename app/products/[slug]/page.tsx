@@ -5,7 +5,13 @@ import { notFound } from "next/navigation";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
 import { teamPathForCatId } from "@/data/team";
-import { AFFILIATE_NOTE, isGenericShopeeSearch } from "@/lib/affiliate";
+import { AffiliateNotice } from "@/components/affiliate-notices";
+import { Breadcrumbs } from "@/components/breadcrumbs";
+import { ProductSections } from "@/components/product-sections";
+import { isGenericShopeeSearch } from "@/lib/affiliate";
+import { categoryForProduct, categoryRoute } from "@/lib/categories";
+import { getGuideLinksForProduct } from "@/lib/guides";
+import { priceInfo, ratingInfo } from "@/lib/product-view";
 import { STORE_ENABLED } from "@/lib/store";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductDetailActions } from "@/components/product-detail-actions";
@@ -63,25 +69,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const shownRelated = relatedProducts.length > 0 ? relatedProducts : fallbackRelated;
   const { SHIPPING_FLAT_RATE, FREE_SHIPPING_THRESHOLD } = serverEnv();
 
-  // Only rows with real data; nothing is shown for fields we have not verified.
-  const rating =
-    product.rating != null && product.reviewCount
-      ? `${product.rating.toFixed(1)}/5 จาก ${product.reviewCount.toLocaleString("th-TH")} รีวิว`
-      : null;
-  const notes: [label: string, value: string, preserveLines?: boolean][] = (
-    [
-      ["ขนาด", product.details.dimensions],
-      ["วัสดุ", product.details.material],
-      ["เหมาะกับ", product.bestFor || product.details.suitableFor],
-      ["วิธีใช้", product.details.instructions, true],
-      ["การรับประกัน (ตามที่ร้านระบุ)", product.warranty],
-      ["ข้อดี", product.pros?.join(" · ")],
-      ["ข้อควรพิจารณา", product.cons?.join(" · ")],
-      ["คะแนนจากผู้ซื้อ", rating],
-      ["ร้านค้า", product.merchant],
-      ["ตรวจข้อมูลล่าสุด", product.lastChecked],
-    ] as [string, string | null | undefined, boolean?][]
-  ).filter((n): n is [string, string, boolean?] => Boolean(n[1]));
+  const category = categoryForProduct(product, products);
+  const guideLinks = getGuideLinksForProduct(product.slug);
+  const rating = ratingInfo(product);
+  const price = priceInfo(product);
+  const crumbs = [
+    ...(category ? [{ name: category.name, href: categoryRoute(category.slug) }] : []),
+    { name: product.name },
+  ];
 
   return (
     <CartProvider
@@ -96,7 +91,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(productJsonLd(product, getSiteUrl(), STORE_ENABLED)).replace(/</g, "\\u003c"),
+              __html: JSON.stringify(productJsonLd(product, getSiteUrl(), STORE_ENABLED)[0]).replace(/</g, "\\u003c"),
             }}
           />
           <section className="product-detail">
@@ -118,32 +113,38 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
 
             <div className="product-detail-copy">
-              <Link className="back-link" href="/#new">
-                กลับไปเลือกสินค้า
-              </Link>
-              <p className="eyebrow">{product.category}</p>
+              <Breadcrumbs items={crumbs} />
+              <p className="eyebrow">{[product.brand, product.category].filter(Boolean).join(" · ")}</p>
               <h1>{product.name}</h1>
-              <p className="product-detail-description">{product.description}</p>
-              <p className="product-detail-price">
-                {STORE_ENABLED
-                  ? formatThb(product.priceThb)
-                  : isGenericShopeeSearch(product.shopeeUrl)
-                    ? "เช็กราคาล่าสุดบน Shopee"
-                    : `ราคาอ้างอิง ${formatThb(product.priceThb)}`}
-              </p>
-              {STORE_ENABLED ? null : <p className="affiliate-disclosure">{AFFILIATE_NOTE}</p>}
-              <ProductDetailActions product={product} />
-              {notes.length > 0 ? (
-                <dl className="product-detail-notes">
-                  {notes.map(([label, value, preserve]) => (
-                    <div key={label}>
-                      <dt>{label}</dt>
-                      <dd className={preserve ? "preserve-lines" : undefined}>{value}</dd>
-                    </div>
-                  ))}
-                </dl>
+              <p className="product-detail-description">{product.shortDescription || product.description}</p>
+              {rating ? (
+                <p className="product-meta">
+                  <span>★ {rating.rating.toFixed(1)} ({rating.reviewCount.toLocaleString("th-TH")} รีวิว)</span>
+                  {product.soldCount ? <span>ขายแล้ว {product.soldCount.toLocaleString("th-TH")} ชิ้น</span> : null}
+                </p>
               ) : null}
+              <p className="product-detail-price">
+                {STORE_ENABLED ? (
+                  formatThb(product.priceThb)
+                ) : price ? (
+                  <>
+                    ราคาอ้างอิง {formatThb(price.price)}
+                    {price.originalPrice ? <s className="price-original"> {formatThb(price.originalPrice)}</s> : null}
+                    {price.discountPct ? <span className="badge discount"> -{price.discountPct}%</span> : null}
+                  </>
+                ) : isGenericShopeeSearch(product.shopeeUrl) ? (
+                  "เช็กราคาล่าสุดบน Shopee"
+                ) : (
+                  "เช็กราคาล่าสุด"
+                )}
+              </p>
+              {STORE_ENABLED ? null : <AffiliateNotice className="affiliate-disclosure" />}
+              <ProductDetailActions product={product} />
             </div>
+          </section>
+
+          <section className="section">
+            <ProductSections product={product} guides={guideLinks} />
           </section>
 
           {shownRelated.length > 0 ? (

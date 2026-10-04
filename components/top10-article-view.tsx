@@ -147,7 +147,13 @@ export function Top10ArticleView({
                       ดูรายละเอียดสินค้า
                     </Link>
                   ) : null}
-                  <AffiliateLink href={item.shopeeUrl} />
+                  <AffiliateLink
+                    href={item.shopeeUrl}
+                    productName={item.productName}
+                    productId={item.productSlug}
+                    placement="ranking_item"
+                    campaign={article.slug}
+                  />
                 </div>
               </li>
             ))}
