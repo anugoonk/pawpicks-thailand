@@ -284,3 +284,5 @@ mark.placeholder{background:#fff0ad;color:#6b4e00;padding:1px 6px;border-radius:
 
 /* The global mobile `nav{position:absolute…}` dropdown rule was catching the footer links nav. */
 footer .footer-links{position:static;flex-direction:row;padding:0;background:none;border:0;border-radius:0;box-shadow:none}
+
+.affiliate-note{margin:18px 0 0;color:var(--muted);font-size:.82rem}

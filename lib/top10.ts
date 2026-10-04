@@ -24,6 +24,19 @@ export function getTop10Articles(): Top10Article[] {
   return ARTICLES.filter((a) => a.status === "published" || a.status === "coming_soon");
 }
 
+/** How many not-yet-published topics the public landing page may tease. */
+export const MAX_UPCOMING_TEASERS = 3;
+
+/**
+ * Articles listed publicly on /top-10: every published one, plus at most
+ * `MAX_UPCOMING_TEASERS` "coming soon" topics so the page never looks like a
+ * wall of unfinished work. Unpublished articles stay out of search/sitemap.
+ */
+export function getTop10ListedArticles(): Top10Article[] {
+  const upcoming = ARTICLES.filter((a) => a.status === "coming_soon").slice(0, MAX_UPCOMING_TEASERS);
+  return ARTICLES.filter((a) => a.status === "published").concat(upcoming);
+}
+
 /** Every article regardless of status (tests / admin tooling only). */
 export function getAllTop10Articles(): Top10Article[] {
   return ARTICLES;

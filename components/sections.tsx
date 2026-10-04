@@ -5,7 +5,7 @@ import { QueryLink } from "@/components/query-link";
 import { TeamCard } from "@/components/team-card";
 import { TEAM, TEAM_LINES } from "@/data/team";
 import { COLLECTIONS } from "@/lib/data";
-import { getTop10Articles } from "@/lib/top10";
+import { getPublishedTop10Articles } from "@/lib/top10";
 
 /* All plain <img>: the original design relies on CSS object-fit / transform
    crops that next/image would override. */
@@ -61,8 +61,8 @@ export function TrustRow() {
       <article>
         <span>⌁</span>
         <div>
-          <strong>กำลังเตรียมเปิดจำหน่ายผ่าน PawPicks</strong>
-          <small>พร้อมข้อมูลสินค้าและบริการที่ชัดเจน</small>
+          <strong>บอกชัดเรื่องลิงก์พันธมิตร</strong>
+          <small>ซื้อผ่าน Shopee ราคาไม่เพิ่ม PawPicks อาจได้ค่าคอมมิชชัน</small>
         </div>
       </article>
     </section>
@@ -74,14 +74,16 @@ export function NewSectionHeading() {
 }
 
 export function Top10Promo() {
-  const articleCount = getTop10Articles().length;
+  const articleCount = getPublishedTop10Articles().length;
+  // Nothing published yet: don't advertise an empty section on the home page.
+  if (articleCount === 0) return null;
   return (
     <section className="section">
       <div className="top10-promo">
         <div>
           <p className="eyebrow">PAWPICKS TOP 10</p>
           <h2>บทความจัดอันดับของใช้แมว {articleCount} หัวข้อ</h2>
-          <p>คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้ หัวข้อที่ยังไม่เผยแพร่จะระบุว่า “เร็วๆ นี้”</p>
+          <p>คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้</p>
         </div>
         <Link className="primary-button" href="/top-10">
           ดูทุกอันดับ <span>→</span>

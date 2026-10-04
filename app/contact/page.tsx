@@ -1,25 +1,43 @@
 import type { Metadata } from "next";
-import { Fact, StaticPage } from "@/components/static-page";
-import { BUSINESS, isLegalPageIndexable } from "@/lib/legal";
+import { StaticPage } from "@/components/static-page";
+import { CONTACT_CHANNELS } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "ติดต่อเรา",
-  description: "ช่องทางติดต่อ PawPicks Thailand",
+  description: "PawPicks Thailand เป็นเว็บไซต์แนะนำและคัดเลือกสินค้าเกี่ยวกับแมวและ Pet Tech — ข้อมูลช่องทางติดต่อและเรื่องที่ควรถามร้านค้าโดยตรง",
   alternates: { canonical: "/contact" },
-  robots: isLegalPageIndexable("/contact") ? undefined : { index: false, follow: true },
 };
 
 export default function ContactPage() {
   return (
-    <StaticPage title="ติดต่อเรา" intro="สอบถามข้อมูลสินค้า การสั่งซื้อ หรือแจ้งปัญหาการใช้งานเว็บไซต์ได้ตามช่องทางด้านล่าง">
-      <dl className="static-facts">
-        <div><dt>ชื่อผู้ประกอบการ</dt><dd><Fact value={BUSINESS.legalName} /></dd></div>
-        <div><dt>เลขทะเบียน</dt><dd><Fact value={BUSINESS.registrationNo} /></dd></div>
-        <div><dt>ที่อยู่</dt><dd><Fact value={BUSINESS.address} /></dd></div>
-        <div><dt>โทรศัพท์</dt><dd><Fact value={BUSINESS.phone} /></dd></div>
-        <div><dt>อีเมล</dt><dd><Fact value={BUSINESS.email} /></dd></div>
-        <div><dt>เวลาทำการ</dt><dd><Fact value={BUSINESS.contactHours} /></dd></div>
-      </dl>
+    <StaticPage
+      title="ติดต่อเรา"
+      intro="PawPicks Thailand เป็นเว็บไซต์แนะนำและคัดเลือกสินค้าเกี่ยวกับแมวและ Pet Tech"
+    >
+      {CONTACT_CHANNELS.length > 0 ? (
+        <>
+          <h2>ช่องทางติดต่อ PawPicks</h2>
+          <dl className="static-facts">
+            {CONTACT_CHANNELS.map((c) => (
+              <div key={c.href}>
+                <dt>{c.label}</dt>
+                <dd><a href={c.href} target="_blank" rel="noopener noreferrer">{c.text}</a></dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      ) : null}
+
+      <h2>เรื่องที่ควรติดต่อร้านค้าโดยตรง</h2>
+      <p>
+        หากเป็นคำถามเกี่ยวกับคำสั่งซื้อ การชำระเงิน การจัดส่ง หรือการรับประกันของสินค้าที่ซื้อผ่าน Shopee
+        โปรดติดต่อร้านค้าที่จำหน่ายสินค้านั้นโดยตรง หรือฝ่ายบริการของแพลตฟอร์ม
+        เพราะ PawPicks ไม่ได้เป็นผู้ขายและไม่ได้เป็นผู้จัดส่งสินค้า
+      </p>
+      <p>
+        อ่านเพิ่มเติมได้ที่ <a href="/shipping">การสั่งซื้อและจัดส่ง</a> และ{" "}
+        <a href="/affiliate-disclosure">การเปิดเผยลิงก์พันธมิตร</a>
+      </p>
     </StaticPage>
   );
 }

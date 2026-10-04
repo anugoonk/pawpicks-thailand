@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 import { TEAM } from "@/data/team";
 import { getSiteUrl } from "@/lib/env";
-import { LEGAL_PAGES, isLegalPageIndexable } from "@/lib/legal";
+import { LEGAL_PAGES } from "@/lib/legal";
 import { getProducts } from "@/lib/products";
 import { getPublishedTop10Articles, top10ArticleRoute } from "@/lib/top10";
 
-// Only indexable URLs: home, /top-10, product pages, published articles and
-// legal pages that are ready. Draft/coming_soon/placeholder pages stay out.
+// Only indexable URLs: home, /top-10, product pages, team profiles, published
+// articles and the trust/legal pages. Draft/coming_soon pages stay out.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const products = await getProducts();
@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
-    ...LEGAL_PAGES.filter((p) => isLegalPageIndexable(p.href)).map((p) => ({
+    ...LEGAL_PAGES.map((p) => ({
       url: `${base}${p.href}`,
       changeFrequency: "yearly" as const,
       priority: 0.3,

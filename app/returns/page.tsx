@@ -1,22 +1,30 @@
 import type { Metadata } from "next";
-import { Fact, StaticPage } from "@/components/static-page";
-import { BUSINESS, isLegalPageIndexable } from "@/lib/legal";
+import { StaticPage } from "@/components/static-page";
 
 export const metadata: Metadata = {
-  title: "การคืนสินค้าและคืนเงิน",
-  description: "เงื่อนไขการคืนสินค้าและคืนเงินของ PawPicks Thailand",
+  title: "การคืนสินค้าและรับประกัน",
+  description: "การคืนสินค้า คืนเงิน และการรับประกันของสินค้าที่ซื้อผ่านลิงก์ในเว็บไซต์ PawPicks Thailand เป็นไปตามเงื่อนไขของร้านค้าและแพลตฟอร์มที่จำหน่าย",
   alternates: { canonical: "/returns" },
-  robots: isLegalPageIndexable("/returns") ? undefined : { index: false, follow: true },
 };
 
 export default function ReturnsPage() {
   return (
-    <StaticPage title="การคืนสินค้าและคืนเงิน" intro="นโยบายนี้ใช้กับสินค้าที่ซื้อจาก PawPicks โดยตรงเท่านั้น สินค้าที่ซื้อผ่าน Shopee/Lazada เป็นไปตามเงื่อนไขของแพลตฟอร์มนั้น">
-      <h2>เงื่อนไขการคืนสินค้า</h2>
-      <p><Fact value={BUSINESS.returnWindow} /></p>
-      <h2>การคืนเงิน</h2>
-      <p>การคืนเงินดำเนินการผ่านช่องทางที่ใช้ชำระเงิน (Stripe) และเมื่อคืนเงินแล้ว สถานะคำสั่งซื้อจะแสดงเป็น “คืนเงินแล้ว” ในหน้าบัญชี</p>
-      <p>ช่องทางแจ้งคืนสินค้า: ดูที่หน้า <a href="/contact">ติดต่อเรา</a></p>
+    <StaticPage
+      title="การคืนสินค้าและรับประกัน"
+      intro="PawPicks Thailand ไม่ได้เป็นผู้ขายสินค้า จึงไม่ได้เป็นผู้รับคืนสินค้าหรือออกการรับประกัน"
+    >
+      <h2>ใช้เงื่อนไขของร้านค้าและแพลตฟอร์ม</h2>
+      <p>
+        สินค้าที่ซื้อผ่านลิงก์ไป Shopee หรือแพลตฟอร์มอื่น การคืนสินค้า การคืนเงิน และการรับประกัน
+        เป็นไปตามนโยบายของแพลตฟอร์มและร้านค้าที่คุณสั่งซื้อ
+        โปรดตรวจสอบเงื่อนไขในหน้าสินค้าของร้านนั้นก่อนสั่งซื้อ
+      </p>
+      <h2>ข้อมูลรับประกันบนเว็บไซต์</h2>
+      <p>
+        ข้อมูลการรับประกันที่เราแสดง (ถ้ามี) เป็นข้อมูลประกอบการเปรียบเทียบ ไม่ใช่การรับประกันจาก PawPicks
+        ควรยืนยันกับร้านค้าอีกครั้งก่อนซื้อ
+      </p>
+      <p>ดูเพิ่มเติมที่ <a href="/shipping">การสั่งซื้อและจัดส่ง</a> และ <a href="/contact">ติดต่อเรา</a></p>
     </StaticPage>
   );
 }

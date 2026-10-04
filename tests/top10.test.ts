@@ -181,3 +181,13 @@ describe("PawPicks Score", () => {
     ).toThrow();
   });
 });
+
+import { MAX_UPCOMING_TEASERS, getTop10ListedArticles } from "@/lib/top10";
+
+describe("public Top 10 listing", () => {
+  it("never shows a wall of coming-soon topics", () => {
+    const listed = getTop10ListedArticles();
+    expect(listed.filter((a) => a.status === "coming_soon").length).toBeLessThanOrEqual(MAX_UPCOMING_TEASERS);
+    expect(listed.every((a) => a.status === "published" || a.status === "coming_soon")).toBe(true);
+  });
+});

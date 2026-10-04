@@ -12,7 +12,21 @@ export function isGenericShopeeSearch(url: string): boolean {
   }
 }
 
-/** Honest CTA label for a product's Shopee link. */
-export function shopeeCtaLabel(url: string): string {
-  return isGenericShopeeSearch(url) ? "ค้นหาสินค้านี้บน Shopee ↗" : "ดูสินค้านี้บน Shopee ↗";
+/** Only real https links may become affiliate buttons — never "#", javascript: or malformed URLs. */
+export function isSafeAffiliateUrl(url: string | null | undefined): url is string {
+  if (!url) return false;
+  try {
+    return new URL(url).protocol === "https:";
+  } catch {
+    return false;
+  }
 }
+
+/** Honest CTA label for a product's Shopee link (never implies PawPicks sells it). */
+export function shopeeCtaLabel(url: string): string {
+  return isGenericShopeeSearch(url) ? "ค้นหาสินค้านี้บน Shopee ↗" : "ดูราคาใน Shopee ↗";
+}
+
+/** Short disclosure shown next to affiliate CTAs. */
+export const AFFILIATE_NOTE =
+  "บางลิงก์เป็น Affiliate Link เราอาจได้รับค่าคอมมิชชันโดยไม่มีค่าใช้จ่ายเพิ่มสำหรับคุณ";

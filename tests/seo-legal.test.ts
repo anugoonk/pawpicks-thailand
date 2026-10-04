@@ -1,7 +1,9 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BUSINESS, LEGAL_PAGES, LEGAL_READY, PENDING, isLegalPageIndexable } from "@/lib/legal";
+import { isSafeAffiliateUrl, shopeeCtaLabel } from "@/lib/affiliate";
+import { FALLBACK_PRODUCTS } from "@/lib/data";
+import { CONTACT_CHANNELS, LEGAL_PAGES } from "@/lib/legal";
 import { productJsonLd } from "@/lib/product-jsonld";
 import { top10JsonLd } from "@/lib/top10-jsonld";
 import { isProductionDeploy } from "@/lib/env";
@@ -16,21 +18,44 @@ const product = {
 describe("trust pages", () => {
   it("every footer legal link has a page", () => {
     expect(LEGAL_PAGES.map((p) => p.href).sort()).toEqual(
-      ["/affiliate-disclosure", "/contact", "/privacy", "/returns", "/shipping", "/terms"],
+      ["/affiliate-disclosure", "/contact", "/how-we-choose", "/privacy", "/returns", "/shipping", "/terms"],
     );
     for (const { href } of LEGAL_PAGES) {
       expect(existsSync(join(process.cwd(), "app", href, "page.tsx"))).toBe(true);
     }
   });
 
-  it("placeholders are explicit and keep unfinished pages out of the index", () => {
-    // Holds whether or not the owner has filled in the facts yet: any remaining
-    // placeholder must keep the legal pages noindex; once all are filled they go live.
-    const unfilled = Object.values(BUSINESS).some((v) => v === PENDING);
-    expect(LEGAL_READY).toBe(!unfilled);
-    expect(isLegalPageIndexable("/privacy")).toBe(!unfilled);
-    // The disclosure is factual and never waits on owner data.
-    expect(isLegalPageIndexable("/affiliate-disclosure")).toBe(true);
+  it("no page ships a developer placeholder or claims PawPicks sells/ships", () => {
+    for (const { href } of LEGAL_PAGES) {
+      const src = readFileSync(join(process.cwd(), "app", href, "page.tsx"), "utf8");
+      expect(src, href).not.toMatch(/รอเจ้าของ|รอที่ปรึกษา|className="placeholder"|TODO|TBD/);
+      expect(src, href).not.toMatch(/Stripe|คำสั่งซื้อของคุณ|เลขพัสดุในหน้าบัญชี/);
+    }
+  });
+
+  it("contact channels are real links (or empty), never placeholders", () => {
+    for (const c of CONTACT_CHANNELS) {
+      expect(c.href).toMatch(/^(https:\/\/|mailto:)/);
+      expect(c.text.trim()).not.toBe("");
+    }
+  });
+});
+
+describe("affiliate links", () => {
+  it("only https URLs can become affiliate buttons", () => {
+    expect(isSafeAffiliateUrl("https://shopee.co.th/product/1")).toBe(true);
+    for (const bad of ["#", "javascript:void(0)", "http://x.test", "", null, undefined, "not a url"]) {
+      expect(isSafeAffiliateUrl(bad)).toBe(false);
+    }
+  });
+
+  it("every catalogue product has a safe affiliate URL", () => {
+    for (const p of FALLBACK_PRODUCTS) expect(isSafeAffiliateUrl(p.shopeeUrl), p.slug).toBe(true);
+  });
+
+  it("CTA copy never implies PawPicks sells the item", () => {
+    expect(shopeeCtaLabel("https://shopee.co.th/search?keyword=x")).toContain("ค้นหา");
+    expect(shopeeCtaLabel("https://shopee.co.th/item-i.1.2")).toContain("Shopee");
   });
 });
 

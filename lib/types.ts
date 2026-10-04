@@ -45,6 +45,19 @@ export const productSchema = z.object({
   returnInfo: z.string().nullish(),
   seoTitle: z.string().nullish(),
   seoDescription: z.string().nullish(),
+  /* Affiliate-recommendation fields. All optional and never invented: the UI
+     shows each one only when real, verified data exists. `shopeeUrl` is the
+     affiliate URL; `originalPrice` is `compareAtPriceThb`. */
+  merchant: z.string().nullish(),
+  /** ISO date (YYYY-MM-DD) the price/rating was last checked on the merchant. */
+  lastChecked: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+  /** 0–5; shown only together with `reviewCount`. */
+  rating: z.number().min(0).max(5).nullish(),
+  reviewCount: z.number().int().nonnegative().nullish(),
+  soldCount: z.number().int().nonnegative().nullish(),
+  pros: z.array(z.string()).optional(),
+  cons: z.array(z.string()).optional(),
+  bestFor: z.string().nullish(),
 });
 export type Product = z.infer<typeof productSchema>;
 
@@ -150,6 +163,12 @@ export const top10ArticleSchema = z
     publishedAt: z.string().optional(),
     editor: z.string().optional(),
     quickSummary: z.string().optional(),
+    /** Meta description; falls back to `excerpt` when absent. */
+    description: z.string().optional(),
+    /** How this specific list was compiled (shown in addition to the site-wide method page). */
+    methodology: z.string().optional(),
+    /** Per-article override of the standard affiliate disclosure text. */
+    affiliateDisclosure: z.string().optional(),
     howToChoose: z.array(z.string()).default([]),
     faq: z.array(top10FaqSchema).default([]),
     items: z.array(top10ItemSchema).max(10).default([]),

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/components/cart-context";
-import { shopeeCtaLabel } from "@/lib/affiliate";
+import { AffiliateLink } from "@/components/affiliate-link";
 import { availableQuantity, canPurchase, stockLabel } from "@/lib/cart";
 import { formatThb } from "@/lib/format";
 import { STORE_ENABLED } from "@/lib/store";
@@ -45,14 +45,7 @@ export function ProductDetailActions({ product }: { product: Product }) {
           ) : null}
         </>
       ) : null}
-      <a
-        className="shopee-link"
-        href={product.shopeeUrl}
-        target="_blank"
-        rel="sponsored noopener"
-      >
-        {shopeeCtaLabel(product.shopeeUrl)}
-      </a>
+      <AffiliateLink className="shopee-link" href={product.shopeeUrl} />
     </div>
   );
 }

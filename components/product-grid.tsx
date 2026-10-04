@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { useSearch } from "@/components/search-context";
-import { shopeeCtaLabel } from "@/lib/affiliate";
+import { AffiliateLink } from "@/components/affiliate-link";
+import { AFFILIATE_NOTE, isGenericShopeeSearch } from "@/lib/affiliate";
 import { availableQuantity, canPurchase, stockLabel } from "@/lib/cart";
 import { teamPathForCatId } from "@/data/team";
 import { STORE_ENABLED } from "@/lib/store";
@@ -105,23 +106,19 @@ export function ProductGrid({ products }: { products: Product[] }) {
                   </>
                 ) : (
                   <p className="product-reference-price">
-                    ราคาอ้างอิง {formatThb(p.priceThb)}
+                    {isGenericShopeeSearch(p.shopeeUrl)
+                      ? "เช็กราคาล่าสุดบน Shopee"
+                      : `ราคาอ้างอิง ${formatThb(p.priceThb)}`}
                   </p>
                 )}
                 {/* Marketplace links are a secondary option, never the main CTA. */}
-                <a
-                  href={p.shopeeUrl}
-                  target="_blank"
-                  rel="sponsored noopener"
-                  className="shopee-link"
-                >
-                  {shopeeCtaLabel(p.shopeeUrl)}
-                </a>
+                <AffiliateLink className="shopee-link" href={p.shopeeUrl} />
               </div>
             </div>
           </article>
         ))}
       </div>
+      <p className="affiliate-note">{AFFILIATE_NOTE}</p>
       <div
         className="empty-state"
         id="emptyState"

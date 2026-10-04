@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { shopeeCtaLabel } from "@/lib/affiliate";
+import { AffiliateLink } from "@/components/affiliate-link";
 import { formatThb } from "@/lib/format";
 import { computePawPicksScore, SCORE_WEIGHTS } from "@/lib/top10-score";
 import { top10ArticleRoute } from "@/lib/top10";
@@ -144,14 +144,10 @@ export function Top10ArticleView({
                   {item.suitableFor ? <p><strong>เหมาะกับ:</strong> {item.suitableFor}</p> : null}
                   {product ? (
                     <Link className="primary-button" href={`/products/${product.slug}`}>
-                      ดูสินค้านี้ที่ PawPicks
+                      ดูรายละเอียดสินค้า
                     </Link>
                   ) : null}
-                  {item.shopeeUrl ? (
-                    <a href={item.shopeeUrl} target="_blank" rel="sponsored noopener nofollow">
-                      {shopeeCtaLabel(item.shopeeUrl)}
-                    </a>
-                  ) : null}
+                  <AffiliateLink href={item.shopeeUrl} />
                 </div>
               </li>
             ))}

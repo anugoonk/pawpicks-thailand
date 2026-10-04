@@ -8,21 +8,19 @@ import { SiteHeader } from "@/components/site-header";
 import { Top10Filter } from "@/components/top10-filter";
 import { serverEnv } from "@/lib/env";
 import { getProducts } from "@/lib/products";
-import { getTop10Articles, getTop10Categories } from "@/lib/top10";
+import { getTop10ListedArticles } from "@/lib/top10";
 
 export const revalidate = 300;
 
-const ARTICLE_COUNT = getTop10Articles().length;
-
 export const metadata: Metadata = {
   title: "PawPicks Top 10",
-  description: `รวมบทความจัดอันดับของใช้แมว ${ARTICLE_COUNT} หัวข้อจาก PawPicks Thailand คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้ หัวข้อที่ยังไม่เผยแพร่จะระบุว่า "เร็วๆ นี้"`,
+  description:
+    "บทความจัดอันดับของใช้แมวและ Pet Tech จาก PawPicks Thailand คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้",
 };
 
 export default async function Top10LandingPage() {
-  const articles = getTop10Articles();
-  const categories = getTop10Categories();
-  const products = await getProducts();
+  const articles = getTop10ListedArticles();
+  const categories = [...new Set(articles.map((a) => a.category))];  const products = await getProducts();
   const { SHIPPING_FLAT_RATE, FREE_SHIPPING_THRESHOLD } = serverEnv();
 
   return (
@@ -43,8 +41,8 @@ export default async function Top10LandingPage() {
               </div>
             </div>
             <p className="top10-landing-intro">
-              คัดสรรและจัดอันดับของใช้แมวตามหมวดหมู่ อัปเดตเมื่อมีข้อมูลที่ตรวจสอบแล้วเท่านั้น
-              หัวข้อที่ยังไม่เผยแพร่จะระบุว่า &ldquo;เร็วๆ นี้&rdquo;
+              คัดสรรและจัดอันดับของใช้แมวตามหมวดหมู่ เผยแพร่เมื่อมีข้อมูลที่ตรวจสอบแล้วเท่านั้น
+              ดู <a href="/how-we-choose">วิธีที่เราเลือกสินค้า</a>
             </p>
             <Top10Filter articles={articles} categories={categories} />
           </section>
