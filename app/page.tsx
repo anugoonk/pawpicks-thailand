@@ -18,6 +18,7 @@ import {
 } from "@/components/sections";
 import { serverEnv } from "@/lib/env";
 import { getProducts } from "@/lib/products";
+import { siteJsonLd } from "@/lib/site-jsonld";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -47,6 +48,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <PromoBar />
         <SiteHeader />
         <main id="top">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(siteJsonLd()).replace(/</g, "\\u003c"),
+            }}
+          />
           <Hero />
           <TrustRow />
           <section className="section" id="new">
