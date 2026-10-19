@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: "PawPicks Top 10",
   description:
     "บทความจัดอันดับของใช้แมวและ Pet Tech จาก PawPicks Thailand คัดเลือกจากคุณสมบัติ ราคา ความปลอดภัย การรับประกัน และความคิดเห็นจากผู้ซื้อที่ตรวจสอบได้",
+  alternates: { canonical: "/top-10" },
 };
 
 export default async function Top10LandingPage() {

@@ -32,9 +32,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!cat) return {};
   const products = await getProducts();
   const populated = isCategoryPopulated(cat, products);
+  const title = cat.seoTitle ?? cat.name;
+  const description = cat.seoDescription ?? cat.description;
   return {
-    title: cat.seoTitle ?? cat.name,
-    description: cat.seoDescription ?? cat.description,
+    title,
+    description,
+    openGraph: { title, description },
     alternates: { canonical: categoryRoute(cat.slug) },
     robots: populated ? undefined : { index: false, follow: false },
   };

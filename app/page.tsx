@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { CartPanel } from "@/components/cart-panel";
 import { CartProvider } from "@/components/cart-context";
 import { STORE_ENABLED } from "@/lib/store";
@@ -17,6 +18,8 @@ import {
 } from "@/components/sections";
 import { serverEnv } from "@/lib/env";
 import { getProducts } from "@/lib/products";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 // Marketing page: static content + product list. Products come from Supabase
 // when configured, otherwise the static fallback — so this always renders.
